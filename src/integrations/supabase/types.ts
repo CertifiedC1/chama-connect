@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      contributions: {
+        Row: {
+          amount: number
+          contribution_date: string
+          contribution_type: string
+          created_at: string
+          description: string | null
+          id: string
+          mpesa_reference: string | null
+          payment_method: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          contribution_date?: string
+          contribution_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          mpesa_reference?: string | null
+          payment_method?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          contribution_date?: string
+          contribution_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          mpesa_reference?: string | null
+          payment_method?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
