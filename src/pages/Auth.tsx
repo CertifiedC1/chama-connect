@@ -30,25 +30,25 @@ const validateEmail = (email: string) => {
 
 const signUpSchema = z.object({
   fullName: z.string().refine(validateFullName, {
-    message: 'Invalid name'
+    message: 'Invalid name!'
   }),
   phoneNumber: z.string().refine(validatePhoneNumber, {
-    message: 'Invalid phone number'
+    message: 'Invalid phone number!'
   }),
   email: z.string().refine(validateEmail, {
-    message: 'Invalid email'
+    message: 'Invalid email!'
   }),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(6, 'Password must be at least 6 characters!'),
   confirmPassword: z.string(),
   userRole: z.enum(['member', 'treasurer', 'admin']),
 }).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
+  message: "Passwords don't match!",
   path: ["confirmPassword"],
 });
 
 const signInSchema = z.object({
-  email: z.string().email('Enter a valid email address'),
-  password: z.string().min(1, 'Password is required'),
+  email: z.string().email('Enter a valid email address!'),
+  password: z.string().min(1, 'Password is required!'),
 });
 
 type AuthMode = 'signin' | 'signup' | 'forgot';
@@ -70,6 +70,7 @@ export default function Auth() {
     userRole: 'member' as AppRole,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [shakeFields, setShakeFields] = useState<Record<string, boolean>>({});
   
   const { signUp, signIn, resetPassword, user } = useAuth();
   const navigate = useNavigate();
@@ -81,25 +82,72 @@ export default function Auth() {
     }
   }, [user, navigate]);
 
+  // Real-time validation for specific fields
+  const validateField = (name: string, value: string) => {
+    let error = '';
+    
+    switch (name) {
+      case 'fullName':
+        if (value.trim().length > 0 && !validateFullName(value)) {
+          error = 'Invalid name!';
+        }
+        break;
+      case 'phoneNumber':
+        if (value.length > 0 && !validatePhoneNumber(value)) {
+          error = 'Invalid phone number!';
+        }
+        break;
+      case 'email':
+        if (value.length > 0 && !validateEmail(value)) {
+          error = 'Invalid email!';
+        }
+        break;
+      case 'password':
+        if (value.length > 0 && value.length < 6) {
+          error = 'Password must be at least 6 characters!';
+        }
+        break;
+      case 'confirmPassword':
+        if (value.length > 0 && value !== formData.password) {
+          error = "Passwords don't match!";
+        }
+        break;
+    }
+    
+    if (error) {
+      setErrors(prev => ({ ...prev, [name]: error }));
+      // Trigger shake animation
+      setShakeFields(prev => ({ ...prev, [name]: true }));
+      setTimeout(() => {
+        setShakeFields(prev => ({ ...prev, [name]: false }));
+      }, 500);
+    } else {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     
+    let processedValue = value;
+    
     // For phone number, only allow digits
     if (name === 'phoneNumber') {
-      const digitsOnly = value.replace(/\D/g, '');
-      setFormData(prev => ({ ...prev, [name]: digitsOnly }));
+      processedValue = value.replace(/\D/g, '');
     } else if (name === 'fullName') {
       // For full name, only allow letters and spaces
-      const lettersOnly = value.replace(/[^A-Za-z\s]/g, '');
-      setFormData(prev => ({ ...prev, [name]: lettersOnly }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
+      processedValue = value.replace(/[^A-Za-z\s]/g, '');
     }
     
-    // Clear error when user types
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    setFormData(prev => ({ ...prev, [name]: processedValue }));
+    
+    // Real-time validation
+    validateField(name, processedValue);
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    validateField(name, value);
   };
 
   const handleRoleChange = (value: string) => {
@@ -123,12 +171,17 @@ export default function Auth() {
     } catch (err) {
       if (err instanceof z.ZodError) {
         const newErrors: Record<string, string> = {};
+        const newShakes: Record<string, boolean> = {};
         err.errors.forEach(e => {
           if (e.path[0]) {
-            newErrors[e.path[0] as string] = e.message;
+            const field = e.path[0] as string;
+            newErrors[field] = e.message;
+            newShakes[field] = true;
           }
         });
         setErrors(newErrors);
+        setShakeFields(newShakes);
+        setTimeout(() => setShakeFields({}), 500);
       }
       return false;
     }
@@ -203,6 +256,19 @@ export default function Auth() {
     }
   };
 
+  const ErrorMessage = ({ field }: { field: string }) => {
+    if (!errors[field]) return null;
+    return (
+      <p 
+        className={`text-sm text-destructive font-medium ${
+          shakeFields[field] ? 'animate-shake' : ''
+        }`}
+      >
+        {errors[field]}
+      </p>
+    );
+  };
+
   return (
     <div 
       className="min-h-screen flex items-center justify-center p-4"
@@ -275,9 +341,7 @@ export default function Auth() {
                     className="pl-10 bg-muted/50"
                   />
                 </div>
-                {errors.email && (
-                  <p className="text-sm text-destructive">{errors.email}</p>
-                )}
+                <ErrorMessage field="email" />
               </div>
 
               <Button
@@ -312,31 +376,11 @@ export default function Auth() {
                         placeholder="Enter your full name (2-4 names)"
                         value={formData.fullName}
                         onChange={handleChange}
-                        className="pl-10 bg-muted/50"
+                        onBlur={handleBlur}
+                        className={`pl-10 bg-muted/50 ${errors.fullName ? 'border-destructive' : ''}`}
                       />
                     </div>
-                    {errors.fullName && (
-                      <p className="text-sm text-destructive">{errors.fullName}</p>
-                    )}
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        className="pl-10 bg-muted/50"
-                      />
-                    </div>
-                    {errors.email && (
-                      <p className="text-sm text-destructive">{errors.email}</p>
-                    )}
+                    <ErrorMessage field="fullName" />
                   </div>
 
                   <div className="space-y-2">
@@ -349,13 +393,30 @@ export default function Auth() {
                         placeholder="Enter your phone number"
                         value={formData.phoneNumber}
                         onChange={handleChange}
-                        className="pl-10 bg-muted/50"
+                        onBlur={handleBlur}
+                        className={`pl-10 bg-muted/50 ${errors.phoneNumber ? 'border-destructive' : ''}`}
                         maxLength={13}
                       />
                     </div>
-                    {errors.phoneNumber && (
-                      <p className="text-sm text-destructive">{errors.phoneNumber}</p>
-                    )}
+                    <ErrorMessage field="phoneNumber" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="email">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="Enter your email (@gmail.com)"
+                        value={formData.email}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        className={`pl-10 bg-muted/50 ${errors.email ? 'border-destructive' : ''}`}
+                      />
+                    </div>
+                    <ErrorMessage field="email" />
                   </div>
 
                   <div className="space-y-2">
@@ -373,9 +434,7 @@ export default function Auth() {
                         </SelectContent>
                       </Select>
                     </div>
-                    {errors.userRole && (
-                      <p className="text-sm text-destructive">{errors.userRole}</p>
-                    )}
+                    <ErrorMessage field="userRole" />
                   </div>
 
                   <div className="space-y-2">
@@ -386,10 +445,11 @@ export default function Auth() {
                         id="password"
                         name="password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Enter your password"
+                        placeholder="Enter your password (min 6 chars)"
                         value={formData.password}
                         onChange={handleChange}
-                        className="pl-10 pr-10 bg-muted/50"
+                        onBlur={handleBlur}
+                        className={`pl-10 pr-10 bg-muted/50 ${errors.password ? 'border-destructive' : ''}`}
                       />
                       <button
                         type="button"
@@ -399,9 +459,7 @@ export default function Auth() {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                    {errors.password && (
-                      <p className="text-sm text-destructive">{errors.password}</p>
-                    )}
+                    <ErrorMessage field="password" />
                   </div>
 
                   <div className="space-y-2">
@@ -415,7 +473,8 @@ export default function Auth() {
                         placeholder="Confirm your password"
                         value={formData.confirmPassword}
                         onChange={handleChange}
-                        className="pl-10 pr-10 bg-muted/50"
+                        onBlur={handleBlur}
+                        className={`pl-10 pr-10 bg-muted/50 ${errors.confirmPassword ? 'border-destructive' : ''}`}
                       />
                       <button
                         type="button"
@@ -425,9 +484,7 @@ export default function Auth() {
                         {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                    {errors.confirmPassword && (
-                      <p className="text-sm text-destructive">{errors.confirmPassword}</p>
-                    )}
+                    <ErrorMessage field="confirmPassword" />
                   </div>
                 </>
               )}
@@ -448,9 +505,7 @@ export default function Auth() {
                         className="pl-10 bg-muted/50"
                       />
                     </div>
-                    {errors.email && (
-                      <p className="text-sm text-destructive">{errors.email}</p>
-                    )}
+                    <ErrorMessage field="email" />
                   </div>
 
                   <div className="space-y-2">
@@ -474,10 +529,16 @@ export default function Auth() {
                         {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                       </button>
                     </div>
-                    {errors.password && (
-                      <p className="text-sm text-destructive">{errors.password}</p>
-                    )}
+                    <ErrorMessage field="password" />
                   </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setMode('forgot')}
+                    className="text-sm text-primary hover:text-primary/80 transition-colors"
+                  >
+                    Forgot password?
+                  </button>
                 </>
               )}
 
@@ -487,22 +548,24 @@ export default function Auth() {
                 disabled={loading}
               >
                 {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {mode === 'signin' ? 'Sign In' : 'Create Account'}
+                {mode === 'signup' ? 'Create Account' : 'Sign In'}
               </Button>
-
-              {mode === 'signin' && (
-                <button
-                  type="button"
-                  onClick={() => setMode('forgot')}
-                  className="w-full text-sm text-muted-foreground hover:text-primary transition-colors"
-                >
-                  Forgot your password?
-                </button>
-              )}
             </form>
           )}
         </CardContent>
       </Card>
+
+      {/* Custom CSS for shake animation */}
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+          20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .animate-shake {
+          animation: shake 0.5s ease-in-out;
+        }
+      `}</style>
     </div>
   );
 }

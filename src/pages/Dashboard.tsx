@@ -1,15 +1,19 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { LogOut, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
 import { AdminDashboard } from '@/components/dashboard/AdminDashboard';
 import { TreasurerDashboard } from '@/components/dashboard/TreasurerDashboard';
 import { MemberDashboard } from '@/components/dashboard/MemberDashboard';
+import { ProfileDropdown } from '@/components/layout/ProfileDropdown';
+import { DashboardFooter } from '@/components/layout/DashboardFooter';
 
 export default function Dashboard() {
-  const { user, loading, signOut, userRole } = useAuth();
+  const { user, loading, userRole } = useAuth();
   const navigate = useNavigate();
+  const [profile, setProfile] = useState<{ full_name: string } | null>(null);
+  const [isFirstLogin, setIsFirstLogin] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -17,9 +21,39 @@ export default function Dashboard() {
     }
   }, [user, loading, navigate]);
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/auth');
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+      checkFirstLogin();
+    }
+  }, [user]);
+
+  const fetchProfile = async () => {
+    if (!user) return;
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', user.id)
+      .single();
+    
+    if (!error && data) {
+      setProfile(data);
+    }
+  };
+
+  const checkFirstLogin = () => {
+    // Check if this is the first login by looking at user metadata
+    const lastSignIn = user?.last_sign_in_at;
+    const createdAt = user?.created_at;
+    
+    if (lastSignIn && createdAt) {
+      const lastSignInDate = new Date(lastSignIn);
+      const createdDate = new Date(createdAt);
+      // If the difference is less than 1 minute, consider it first login
+      const diff = Math.abs(lastSignInDate.getTime() - createdDate.getTime());
+      setIsFirstLogin(diff < 60000);
+    }
   };
 
   if (loading) {
@@ -35,16 +69,16 @@ export default function Dashboard() {
   const renderDashboard = () => {
     switch (userRole) {
       case 'admin':
-        return <AdminDashboard />;
+        return <AdminDashboard isFirstLogin={isFirstLogin} userName={profile?.full_name} />;
       case 'treasurer':
-        return <TreasurerDashboard />;
+        return <TreasurerDashboard isFirstLogin={isFirstLogin} userName={profile?.full_name} />;
       default:
-        return <MemberDashboard />;
+        return <MemberDashboard isFirstLogin={isFirstLogin} userName={profile?.full_name} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <header className="border-b bg-card sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between px-4">
@@ -58,22 +92,20 @@ export default function Dashboard() {
             </div>
           </div>
           
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground hidden sm:inline">
-              {user.email}
-            </span>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
+          <ProfileDropdown 
+            fullName={profile?.full_name || 'User'} 
+            email={user.email || ''} 
+          />
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="container px-4 py-8">
+      <main className="container px-4 py-8 flex-1">
         {renderDashboard()}
       </main>
+
+      {/* Footer */}
+      <DashboardFooter />
     </div>
   );
 }

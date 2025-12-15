@@ -1,25 +1,36 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, Wallet, TrendingUp, AlertCircle, UserPlus, Settings, Shield } from 'lucide-react';
+import { Users, Wallet, TrendingUp, AlertCircle, Settings, Shield, CreditCard, FileText } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { MemberManagement } from '@/components/members/MemberManagement';
 import { ContributionManagement } from '@/components/contributions/ContributionManagement';
+import { ImageSlideshow } from '@/components/layout/ImageSlideshow';
+import { RotatingImages } from '@/components/layout/RotatingImages';
+
+interface AdminDashboardProps {
+  isFirstLogin?: boolean;
+  userName?: string;
+}
 
 interface Stats {
   totalMembers: number;
   activeMembers: number;
   totalContributions: number;
   pendingContributions: number;
+  totalLoansIssued: number;
+  pendingLoanRequests: number;
 }
 
-export function AdminDashboard() {
+export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboardProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'members' | 'contributions'>('overview');
   const [stats, setStats] = useState<Stats>({
     totalMembers: 0,
     activeMembers: 0,
     totalContributions: 0,
     pendingContributions: 0,
+    totalLoansIssued: 0,
+    pendingLoanRequests: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -48,7 +59,9 @@ export function AdminDashboard() {
         .select('amount, status');
       
       if (!contribError && contributions) {
-        const total = contributions.reduce((sum, c) => sum + Number(c.amount), 0);
+        const total = contributions
+          .filter(c => c.status === 'completed')
+          .reduce((sum, c) => sum + Number(c.amount), 0);
         const pending = contributions.filter(c => c.status === 'pending').length;
         setStats(prev => ({
           ...prev,
@@ -95,10 +108,13 @@ export function AdminDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Welcome Message */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Admin Dashboard</h2>
-          <p className="text-muted-foreground">Full system access and management</p>
+          <p className="text-muted-foreground">
+            {isFirstLogin ? 'Welcome' : 'Welcome back'}, {userName || 'Admin'}! Full system access and management
+          </p>
         </div>
         <div className="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full">
           <Shield className="h-4 w-4 text-primary" />
@@ -106,11 +122,14 @@ export function AdminDashboard() {
         </div>
       </div>
 
+      {/* Image Slideshow */}
+      <ImageSlideshow />
+
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="border-l-4 border-l-primary">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Members</CardTitle>
+            <CardTitle className="text-sm font-medium text-primary">Total Members</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -119,9 +138,9 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Contributions</CardTitle>
+            <CardTitle className="text-sm font-medium text-blue-600">Total Contributions</CardTitle>
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -130,9 +149,9 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-amber-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+            <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -141,7 +160,7 @@ export function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">System Status</CardTitle>
             <AlertCircle className="h-4 w-4 text-muted-foreground" />
@@ -149,6 +168,42 @@ export function AdminDashboard() {
           <CardContent>
             <div className="text-2xl font-bold text-green-600">Active</div>
             <p className="text-xs text-muted-foreground">All systems operational</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Secondary Stats */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Loans Issued</CardTitle>
+            <CreditCard className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">KES {stats.totalLoansIssued.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Active loans</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Pending Loan Requests</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.pendingLoanRequests}</div>
+            <p className="text-xs text-muted-foreground">Awaiting approval</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Latest Transaction</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold">Today</div>
+            <p className="text-xs text-muted-foreground">Recent activity</p>
           </CardContent>
         </Card>
       </div>
@@ -182,6 +237,9 @@ export function AdminDashboard() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Rotating Images */}
+      <RotatingImages />
     </div>
   );
 }
