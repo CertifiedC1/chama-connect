@@ -1,20 +1,29 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Wallet, TrendingUp, Calendar, User, CreditCard, History } from 'lucide-react';
+import { Wallet, TrendingUp, Calendar, User, CreditCard, History, Clock, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { MakeContribution } from '@/components/contributions/MakeContribution';
 import { MyContributions } from '@/components/contributions/MyContributions';
+import { ImageSlideshow } from '@/components/layout/ImageSlideshow';
+import { RotatingImages } from '@/components/layout/RotatingImages';
+
+interface MemberDashboardProps {
+  isFirstLogin?: boolean;
+  userName?: string;
+}
 
 interface Stats {
   totalContributed: number;
   monthlyContribution: number;
   lastContributionDate: string | null;
   memberSince: string;
+  loanStatus: string;
+  finesOwed: number;
 }
 
-export function MemberDashboard() {
+export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashboardProps) {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'overview' | 'contribute' | 'history'>('overview');
   const [stats, setStats] = useState<Stats>({
@@ -22,6 +31,8 @@ export function MemberDashboard() {
     monthlyContribution: 0,
     lastContributionDate: null,
     memberSince: '',
+    loanStatus: 'None',
+    finesOwed: 0,
   });
   const [profile, setProfile] = useState<{ full_name: string; member_number: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -84,18 +95,28 @@ export function MemberDashboard() {
 
   if (activeTab === 'contribute') {
     return (
-      <div>
-        <Button 
-          variant="ghost" 
-          onClick={() => setActiveTab('overview')} 
-          className="mb-4"
-        >
-          ← Back to Dashboard
-        </Button>
-        <MakeContribution onSuccess={() => {
-          fetchStats();
-          setActiveTab('overview');
-        }} />
+      <div 
+        className="min-h-[60vh] flex items-center justify-center"
+        style={{
+          backgroundImage: 'url(https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1920&h=1080&fit=crop)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
+        <div className="relative z-10 w-full max-w-lg px-4">
+          <Button 
+            variant="ghost" 
+            onClick={() => setActiveTab('overview')} 
+            className="mb-4"
+          >
+            ← Back to Dashboard
+          </Button>
+          <MakeContribution onSuccess={() => {
+            fetchStats();
+            setActiveTab('overview');
+          }} />
+        </div>
       </div>
     );
   }
@@ -117,11 +138,12 @@ export function MemberDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Welcome Message */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">My Dashboard</h2>
           <p className="text-muted-foreground">
-            Welcome back, {profile?.full_name || 'Member'}
+            {isFirstLogin ? 'Welcome' : 'Welcome back'}, {userName || profile?.full_name || 'Member'}
             {profile?.member_number && ` (${profile.member_number})`}
           </p>
         </div>
@@ -131,11 +153,14 @@ export function MemberDashboard() {
         </div>
       </div>
 
+      {/* Image Slideshow */}
+      <ImageSlideshow />
+
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="border-l-4 border-l-primary">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Contributed</CardTitle>
+            <CardTitle className="text-sm font-medium text-primary">Total Contributed</CardTitle>
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -144,9 +169,9 @@ export function MemberDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Month</CardTitle>
+            <CardTitle className="text-sm font-medium text-blue-600">This Month</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -155,7 +180,7 @@ export function MemberDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-amber-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Last Contribution</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -170,7 +195,7 @@ export function MemberDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-l-4 border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Member Since</CardTitle>
             <User className="h-4 w-4 text-muted-foreground" />
@@ -182,6 +207,42 @@ export function MemberDashboard() {
                 : '--'}
             </div>
             <p className="text-xs text-muted-foreground">Join date</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Additional Stats */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Loan Status</CardTitle>
+            <Wallet className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold text-green-600">{stats.loanStatus}</div>
+            <p className="text-xs text-muted-foreground">Current loan status</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Fines Owed</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold">KES {stats.finesOwed.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Outstanding fines</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Upcoming Deadline</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold">End of Month</div>
+            <p className="text-xs text-muted-foreground">Monthly contribution due</p>
           </CardContent>
         </Card>
       </div>
@@ -215,6 +276,9 @@ export function MemberDashboard() {
           </Button>
         </CardContent>
       </Card>
+
+      {/* Rotating Images */}
+      <RotatingImages />
     </div>
   );
 }
