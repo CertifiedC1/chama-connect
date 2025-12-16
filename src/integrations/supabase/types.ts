@@ -14,6 +14,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      chama_settings: {
+        Row: {
+          chama_logo: string | null
+          chama_name: string
+          contribution_amount: number | null
+          contribution_frequency: string | null
+          created_at: string
+          description: string | null
+          enable_auto_fines: boolean | null
+          enable_loan_auto_fines: boolean | null
+          grace_period_days: number | null
+          id: string
+          interest_type: string | null
+          late_contribution_fine: number | null
+          late_loan_fine: number | null
+          loan_eligibility_months: number | null
+          loan_interest_rate: number | null
+          max_loan_amount: number | null
+          max_repayment_months: number | null
+          meeting_day: number | null
+          start_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          chama_logo?: string | null
+          chama_name?: string
+          contribution_amount?: number | null
+          contribution_frequency?: string | null
+          created_at?: string
+          description?: string | null
+          enable_auto_fines?: boolean | null
+          enable_loan_auto_fines?: boolean | null
+          grace_period_days?: number | null
+          id?: string
+          interest_type?: string | null
+          late_contribution_fine?: number | null
+          late_loan_fine?: number | null
+          loan_eligibility_months?: number | null
+          loan_interest_rate?: number | null
+          max_loan_amount?: number | null
+          max_repayment_months?: number | null
+          meeting_day?: number | null
+          start_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          chama_logo?: string | null
+          chama_name?: string
+          contribution_amount?: number | null
+          contribution_frequency?: string | null
+          created_at?: string
+          description?: string | null
+          enable_auto_fines?: boolean | null
+          enable_loan_auto_fines?: boolean | null
+          grace_period_days?: number | null
+          id?: string
+          interest_type?: string | null
+          late_contribution_fine?: number | null
+          late_loan_fine?: number | null
+          loan_eligibility_months?: number | null
+          loan_interest_rate?: number | null
+          max_loan_amount?: number | null
+          max_repayment_months?: number | null
+          meeting_day?: number | null
+          start_date?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contributions: {
         Row: {
           amount: number
@@ -52,6 +121,218 @@ export type Database = {
           payment_method?: string
           status?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      fines: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string | null
+          due_date: string | null
+          fine_type: string
+          id: string
+          paid_at: string | null
+          reason: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          fine_type: string
+          id?: string
+          paid_at?: string | null
+          reason?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string | null
+          due_date?: string | null
+          fine_type?: string
+          id?: string
+          paid_at?: string | null
+          reason?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      loan_repayments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          loan_id: string
+          mpesa_reference: string | null
+          payment_method: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          loan_id: string
+          mpesa_reference?: string | null
+          payment_method?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          loan_id?: string
+          mpesa_reference?: string | null
+          payment_method?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loan_repayments_loan_id_fkey"
+            columns: ["loan_id"]
+            isOneToOne: false
+            referencedRelation: "loans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      loans: {
+        Row: {
+          amount: number
+          approved_at: string | null
+          approved_by: string | null
+          created_at: string
+          due_date: string
+          id: string
+          interest_amount: number
+          interest_rate: number
+          phone_number: string
+          purpose: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          due_date: string
+          id?: string
+          interest_amount?: number
+          interest_rate?: number
+          phone_number: string
+          purpose?: string | null
+          status?: string
+          total_amount: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          approved_at?: string | null
+          approved_by?: string | null
+          created_at?: string
+          due_date?: string
+          id?: string
+          interest_amount?: number
+          interest_rate?: number
+          phone_number?: string
+          purpose?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mpesa_transactions: {
+        Row: {
+          amount: number
+          checkout_request_id: string | null
+          created_at: string
+          id: string
+          mpesa_reference: string | null
+          phone_number: string
+          related_id: string | null
+          related_type: string | null
+          status: string
+          transaction_type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          checkout_request_id?: string | null
+          created_at?: string
+          id?: string
+          mpesa_reference?: string | null
+          phone_number: string
+          related_id?: string | null
+          related_type?: string | null
+          status?: string
+          transaction_type: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          checkout_request_id?: string | null
+          created_at?: string
+          id?: string
+          mpesa_reference?: string | null
+          phone_number?: string
+          related_id?: string | null
+          related_type?: string | null
+          status?: string
+          transaction_type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          related_id: string | null
+          related_type: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          related_id?: string | null
+          related_type?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          related_id?: string | null
+          related_type?: string | null
+          title?: string
+          type?: string
           user_id?: string
         }
         Relationships: []
