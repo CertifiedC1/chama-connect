@@ -1,10 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, Wallet, TrendingUp, AlertCircle, Settings, Shield, CreditCard, FileText } from 'lucide-react';
+import { Users, Wallet, TrendingUp, AlertCircle, Settings, Shield, CreditCard, FileText, Plus, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { MemberManagement } from '@/components/members/MemberManagement';
 import { ContributionManagement } from '@/components/contributions/ContributionManagement';
+import { MakeContribution } from '@/components/contributions/MakeContribution';
+import { LoanManagement } from '@/components/loans/LoanManagement';
+import { FinesManagement } from '@/components/fines/FinesManagement';
+import { SystemSettings } from '@/components/settings/SystemSettings';
 import { ImageSlideshow } from '@/components/layout/ImageSlideshow';
 import { RotatingImages } from '@/components/layout/RotatingImages';
 
@@ -20,10 +24,13 @@ interface Stats {
   pendingContributions: number;
   totalLoansIssued: number;
   pendingLoanRequests: number;
+  totalFines: number;
 }
 
+type TabType = 'overview' | 'members' | 'contributions' | 'make-contribution' | 'loans' | 'fines' | 'settings';
+
 export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'members' | 'contributions'>('overview');
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [stats, setStats] = useState<Stats>({
     totalMembers: 0,
     activeMembers: 0,
@@ -31,6 +38,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
     pendingContributions: 0,
     totalLoansIssued: 0,
     pendingLoanRequests: 0,
+    totalFines: 0,
   });
   const [loading, setLoading] = useState(true);
 
@@ -69,6 +77,38 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           pendingContributions: pending,
         }));
       }
+
+      // Fetch loan stats
+      const { data: loans, error: loansError } = await supabase
+        .from('loans')
+        .select('total_amount, status');
+      
+      if (!loansError && loans) {
+        const totalIssued = loans
+          .filter(l => l.status === 'approved')
+          .reduce((sum, l) => sum + Number(l.total_amount), 0);
+        const pending = loans.filter(l => l.status === 'pending').length;
+        setStats(prev => ({
+          ...prev,
+          totalLoansIssued: totalIssued,
+          pendingLoanRequests: pending,
+        }));
+      }
+
+      // Fetch fines stats
+      const { data: fines, error: finesError } = await supabase
+        .from('fines')
+        .select('amount, status');
+      
+      if (!finesError && fines) {
+        const totalUnpaid = fines
+          .filter(f => f.status === 'unpaid')
+          .reduce((sum, f) => sum + Number(f.amount), 0);
+        setStats(prev => ({
+          ...prev,
+          totalFines: totalUnpaid,
+        }));
+      }
     } catch (error) {
       console.error('Error fetching stats:', error);
     } finally {
@@ -79,11 +119,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
   if (activeTab === 'members') {
     return (
       <div>
-        <Button 
-          variant="ghost" 
-          onClick={() => setActiveTab('overview')} 
-          className="mb-4"
-        >
+        <Button variant="ghost" onClick={() => setActiveTab('overview')} className="mb-4">
           ← Back to Dashboard
         </Button>
         <MemberManagement />
@@ -94,14 +130,62 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
   if (activeTab === 'contributions') {
     return (
       <div>
-        <Button 
-          variant="ghost" 
-          onClick={() => setActiveTab('overview')} 
-          className="mb-4"
-        >
+        <Button variant="ghost" onClick={() => setActiveTab('overview')} className="mb-4">
           ← Back to Dashboard
         </Button>
         <ContributionManagement />
+      </div>
+    );
+  }
+
+  if (activeTab === 'make-contribution') {
+    return (
+      <div 
+        className="min-h-[60vh] flex items-center justify-center bg-cover bg-center relative"
+        style={{
+          backgroundImage: 'url(https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1920&h=1080&fit=crop)',
+        }}
+      >
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
+        <div className="relative z-10 w-full max-w-4xl px-4">
+          <Button variant="ghost" onClick={() => setActiveTab('overview')} className="mb-4">
+            ← Back to Dashboard
+          </Button>
+          <MakeContribution onSuccess={() => { fetchStats(); setActiveTab('overview'); }} />
+        </div>
+      </div>
+    );
+  }
+
+  if (activeTab === 'loans') {
+    return (
+      <div>
+        <Button variant="ghost" onClick={() => setActiveTab('overview')} className="mb-4">
+          ← Back to Dashboard
+        </Button>
+        <LoanManagement />
+      </div>
+    );
+  }
+
+  if (activeTab === 'fines') {
+    return (
+      <div>
+        <Button variant="ghost" onClick={() => setActiveTab('overview')} className="mb-4">
+          ← Back to Dashboard
+        </Button>
+        <FinesManagement />
+      </div>
+    );
+  }
+
+  if (activeTab === 'settings') {
+    return (
+      <div>
+        <Button variant="ghost" onClick={() => setActiveTab('overview')} className="mb-4">
+          ← Back to Dashboard
+        </Button>
+        <SystemSettings />
       </div>
     );
   }
@@ -181,7 +265,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">KES {stats.totalLoansIssued.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Active loans</p>
+            <p className="text-xs text-muted-foreground">Approved loans</p>
           </CardContent>
         </Card>
 
@@ -198,12 +282,12 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Latest Transaction</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Unpaid Fines</CardTitle>
+            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-bold">Today</div>
-            <p className="text-xs text-muted-foreground">Recent activity</p>
+            <div className="text-2xl font-bold text-red-600">KES {stats.totalFines.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">Outstanding fines</p>
           </CardContent>
         </Card>
       </div>
@@ -214,14 +298,14 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           <CardTitle>Quick Actions</CardTitle>
           <CardDescription>Admin management tools</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
+        <CardContent className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
           <Button 
             variant="outline" 
             className="h-20 flex-col gap-2"
             onClick={() => setActiveTab('members')}
           >
             <Users className="h-5 w-5" />
-            <span>Manage Members</span>
+            <span className="text-xs">Manage Members</span>
           </Button>
           <Button 
             variant="outline" 
@@ -229,11 +313,39 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
             onClick={() => setActiveTab('contributions')}
           >
             <Wallet className="h-5 w-5" />
-            <span>View Contributions</span>
+            <span className="text-xs">View Contributions</span>
           </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2" disabled>
+          <Button 
+            variant="outline" 
+            className="h-20 flex-col gap-2"
+            onClick={() => setActiveTab('make-contribution')}
+          >
+            <Plus className="h-5 w-5" />
+            <span className="text-xs">Make Contribution</span>
+          </Button>
+          <Button 
+            variant="outline" 
+            className="h-20 flex-col gap-2"
+            onClick={() => setActiveTab('loans')}
+          >
+            <CreditCard className="h-5 w-5" />
+            <span className="text-xs">Manage Loans</span>
+          </Button>
+          <Button 
+            variant="outline" 
+            className="h-20 flex-col gap-2"
+            onClick={() => setActiveTab('fines')}
+          >
+            <AlertTriangle className="h-5 w-5" />
+            <span className="text-xs">Manage Fines</span>
+          </Button>
+          <Button 
+            variant="outline" 
+            className="h-20 flex-col gap-2"
+            onClick={() => setActiveTab('settings')}
+          >
             <Settings className="h-5 w-5" />
-            <span>System Settings</span>
+            <span className="text-xs">System Settings</span>
           </Button>
         </CardContent>
       </Card>

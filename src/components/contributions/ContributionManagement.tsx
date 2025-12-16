@@ -5,9 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Check, X, Loader2 } from 'lucide-react';
+import { Search, Check, X, Loader2, MoreHorizontal, RotateCcw } from 'lucide-react';
 
 interface Contribution {
   id: string;
@@ -73,7 +74,7 @@ export function ContributionManagement() {
     }
   };
 
-  const updateContributionStatus = async (id: string, status: 'completed' | 'rejected') => {
+  const updateContributionStatus = async (id: string, status: 'completed' | 'rejected' | 'pending', userId?: string, amount?: number) => {
     setUpdating(id);
     try {
       const { error } = await supabase
@@ -83,9 +84,39 @@ export function ContributionManagement() {
       
       if (error) throw error;
 
+      // Send notification to member
+      if (userId && amount) {
+        let title = '';
+        let message = '';
+        let type = '';
+
+        if (status === 'completed') {
+          title = 'Contribution Approved';
+          message = `Your contribution of KES ${amount.toLocaleString()} has been approved.`;
+          type = 'contribution_success';
+        } else if (status === 'rejected') {
+          title = 'Contribution Rejected';
+          message = `Your contribution of KES ${amount.toLocaleString()} has been rejected. Please contact support.`;
+          type = 'contribution_failed';
+        } else if (status === 'pending') {
+          title = 'Contribution Status Updated';
+          message = `Your contribution of KES ${amount.toLocaleString()} has been reverted to pending status.`;
+          type = 'contribution_pending';
+        }
+
+        await supabase.from('notifications').insert({
+          user_id: userId,
+          title,
+          message,
+          type,
+        });
+      }
+
       toast({
         title: 'Success',
-        description: `Contribution ${status === 'completed' ? 'approved' : 'rejected'}`,
+        description: status === 'pending' 
+          ? 'Contribution reverted to pending' 
+          : `Contribution ${status === 'completed' ? 'approved' : 'rejected'}`,
       });
       fetchContributions();
     } catch (error) {
@@ -223,32 +254,75 @@ export function ContributionManagement() {
                     <TableCell>{new Date(contribution.contribution_date).toLocaleDateString()}</TableCell>
                     <TableCell>{getStatusBadge(contribution.status)}</TableCell>
                     <TableCell className="text-right">
-                      {contribution.status === 'pending' && (
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                            onClick={() => updateContributionStatus(contribution.id, 'completed')}
-                            disabled={updating === contribution.id}
-                          >
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" disabled={updating === contribution.id}>
                             {updating === contribution.id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
                             ) : (
-                              <Check className="h-4 w-4" />
+                              <MoreHorizontal className="h-4 w-4" />
                             )}
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            onClick={() => updateContributionStatus(contribution.id, 'rejected')}
-                            disabled={updating === contribution.id}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {contribution.status === 'pending' && (
+                            <>
+                              <DropdownMenuItem
+                                className="text-green-600"
+                                onClick={() => updateContributionStatus(
+                                  contribution.id, 
+                                  'completed',
+                                  contribution.user_id,
+                                  contribution.amount
+                                )}
+                              >
+                                <Check className="h-4 w-4 mr-2" />
+                                Approve
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => updateContributionStatus(
+                                  contribution.id, 
+                                  'rejected',
+                                  contribution.user_id,
+                                  contribution.amount
+                                )}
+                              >
+                                <X className="h-4 w-4 mr-2" />
+                                Reject
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          {contribution.status === 'completed' && (
+                            <DropdownMenuItem
+                              className="text-yellow-600"
+                              onClick={() => updateContributionStatus(
+                                contribution.id, 
+                                'pending',
+                                contribution.user_id,
+                                contribution.amount
+                              )}
+                            >
+                              <RotateCcw className="h-4 w-4 mr-2" />
+                              Revert to Pending
+                            </DropdownMenuItem>
+                          )}
+                          {contribution.status === 'rejected' && (
+                            <DropdownMenuItem
+                              className="text-yellow-600"
+                              onClick={() => updateContributionStatus(
+                                contribution.id, 
+                                'pending',
+                                contribution.user_id,
+                                contribution.amount
+                              )}
+                            >
+                              <RotateCcw className="h-4 w-4 mr-2" />
+                              Revert to Pending
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))

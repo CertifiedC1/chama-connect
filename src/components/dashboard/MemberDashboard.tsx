@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { MakeContribution } from '@/components/contributions/MakeContribution';
 import { MyContributions } from '@/components/contributions/MyContributions';
+import { LoanApplication } from '@/components/loans/LoanApplication';
 import { ImageSlideshow } from '@/components/layout/ImageSlideshow';
 import { RotatingImages } from '@/components/layout/RotatingImages';
 
@@ -20,19 +21,25 @@ interface Stats {
   lastContributionDate: string | null;
   memberSince: string;
   loanStatus: string;
+  loanBalance: number;
   finesOwed: number;
+  contributionCount: number;
 }
+
+type TabType = 'overview' | 'contribute' | 'history' | 'apply-loan';
 
 export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashboardProps) {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'contribute' | 'history'>('overview');
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [stats, setStats] = useState<Stats>({
     totalContributed: 0,
     monthlyContribution: 0,
     lastContributionDate: null,
     memberSince: '',
     loanStatus: 'None',
+    loanBalance: 0,
     finesOwed: 0,
+    contributionCount: 0,
   });
   const [profile, setProfile] = useState<{ full_name: string; member_number: string | null } | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,6 +70,7 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
     if (!user) return;
     
     try {
+      // Fetch contributions
       const { data: contributions, error } = await supabase
         .from('contributions')
         .select('amount, created_at, status')
@@ -84,7 +92,37 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
           totalContributed: total,
           monthlyContribution: monthly,
           lastContributionDate: lastDate,
+          contributionCount: contributions.length,
         }));
+      }
+
+      // Fetch active loan
+      const { data: loans } = await supabase
+        .from('loans')
+        .select('status, total_amount')
+        .eq('user_id', user.id)
+        .in('status', ['approved', 'pending'])
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (loans && loans.length > 0) {
+        setStats(prev => ({
+          ...prev,
+          loanStatus: loans[0].status === 'approved' ? 'Active' : 'Pending',
+          loanBalance: loans[0].status === 'approved' ? Number(loans[0].total_amount) : 0,
+        }));
+      }
+
+      // Fetch unpaid fines
+      const { data: fines } = await supabase
+        .from('fines')
+        .select('amount')
+        .eq('user_id', user.id)
+        .eq('status', 'unpaid');
+
+      if (fines) {
+        const totalFines = fines.reduce((sum, f) => sum + Number(f.amount), 0);
+        setStats(prev => ({ ...prev, finesOwed: totalFines }));
       }
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -96,15 +134,13 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
   if (activeTab === 'contribute') {
     return (
       <div 
-        className="min-h-[60vh] flex items-center justify-center"
+        className="min-h-[60vh] flex items-center justify-center bg-cover bg-center relative"
         style={{
           backgroundImage: 'url(https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1920&h=1080&fit=crop)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
         }}
       >
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
-        <div className="relative z-10 w-full max-w-lg px-4">
+        <div className="relative z-10 w-full max-w-4xl px-4">
           <Button 
             variant="ghost" 
             onClick={() => setActiveTab('overview')} 
@@ -132,6 +168,32 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
           ← Back to Dashboard
         </Button>
         <MyContributions />
+      </div>
+    );
+  }
+
+  if (activeTab === 'apply-loan') {
+    return (
+      <div 
+        className="min-h-[60vh] flex items-center justify-center bg-cover bg-center relative"
+        style={{
+          backgroundImage: 'url(https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?w=1920&h=1080&fit=crop)',
+        }}
+      >
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />
+        <div className="relative z-10 w-full max-w-lg px-4">
+          <Button 
+            variant="ghost" 
+            onClick={() => setActiveTab('overview')} 
+            className="mb-4"
+          >
+            ← Back to Dashboard
+          </Button>
+          <LoanApplication onSuccess={() => {
+            fetchStats();
+            setActiveTab('overview');
+          }} />
+        </div>
       </div>
     );
   }
@@ -219,8 +281,12 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-bold text-green-600">{stats.loanStatus}</div>
-            <p className="text-xs text-muted-foreground">Current loan status</p>
+            <div className={`text-lg font-bold ${stats.loanStatus === 'Active' ? 'text-amber-600' : stats.loanStatus === 'Pending' ? 'text-yellow-600' : 'text-green-600'}`}>
+              {stats.loanStatus}
+            </div>
+            {stats.loanBalance > 0 && (
+              <p className="text-xs text-muted-foreground">Balance: KES {stats.loanBalance.toLocaleString()}</p>
+            )}
           </CardContent>
         </Card>
 
@@ -230,7 +296,9 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-lg font-bold">KES {stats.finesOwed.toLocaleString()}</div>
+            <div className={`text-lg font-bold ${stats.finesOwed > 0 ? 'text-red-600' : 'text-green-600'}`}>
+              KES {stats.finesOwed.toLocaleString()}
+            </div>
             <p className="text-xs text-muted-foreground">Outstanding fines</p>
           </CardContent>
         </Card>
@@ -270,9 +338,14 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
             <History className="h-5 w-5" />
             <span>View History</span>
           </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2" disabled>
+          <Button 
+            variant="outline" 
+            className="h-20 flex-col gap-2"
+            onClick={() => setActiveTab('apply-loan')}
+            disabled={stats.contributionCount < 2}
+          >
             <TrendingUp className="h-5 w-5" />
-            <span>Apply for Loan</span>
+            <span>{stats.contributionCount < 2 ? `Apply for Loan (${stats.contributionCount}/2 contributions)` : 'Apply for Loan'}</span>
           </Button>
         </CardContent>
       </Card>

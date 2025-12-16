@@ -1,6 +1,11 @@
 import { Facebook, Twitter, Instagram } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
-export function DashboardFooter() {
+interface DashboardFooterProps {
+  onNavigate?: (tab: string) => void;
+}
+
+export function DashboardFooter({ onNavigate }: DashboardFooterProps) {
   return (
     <footer className="bg-card border-t mt-auto">
       <div className="container mx-auto px-4 py-8">
@@ -22,10 +27,40 @@ export function DashboardFooter() {
           <div>
             <h4 className="font-semibold mb-3 text-foreground">Pages</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><a href="/dashboard" className="hover:text-primary transition-colors">Dashboard</a></li>
-              <li><a href="/contributions" className="hover:text-primary transition-colors">Contributions</a></li>
-              <li><a href="/members" className="hover:text-primary transition-colors">Members</a></li>
-              <li><a href="/loans" className="hover:text-primary transition-colors">Loans</a></li>
+              <li>
+                <Link to="/dashboard" className="hover:text-primary transition-colors">
+                  Dashboard
+                </Link>
+              </li>
+              <li>
+                <Link to="/profile" className="hover:text-primary transition-colors">
+                  Profile
+                </Link>
+              </li>
+              <li>
+                <a 
+                  href="#contributions" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="hover:text-primary transition-colors"
+                >
+                  Contributions
+                </a>
+              </li>
+              <li>
+                <a 
+                  href="#loans" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                  }}
+                  className="hover:text-primary transition-colors"
+                >
+                  Loans
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -46,19 +81,25 @@ export function DashboardFooter() {
             <h4 className="font-semibold mb-3 text-foreground">Stay In Touch With Us</h4>
             <div className="flex gap-3">
               <a 
-                href="#" 
+                href="https://facebook.com" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
               >
                 <Facebook className="h-5 w-5" />
               </a>
               <a 
-                href="#" 
+                href="https://twitter.com" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
               >
                 <Twitter className="h-5 w-5" />
               </a>
               <a 
-                href="#" 
+                href="https://instagram.com" 
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 rounded-full bg-muted flex items-center justify-center hover:bg-primary hover:text-primary-foreground transition-colors"
               >
                 <Instagram className="h-5 w-5" />
