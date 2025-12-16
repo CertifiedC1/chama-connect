@@ -8,6 +8,7 @@ import { TreasurerDashboard } from '@/components/dashboard/TreasurerDashboard';
 import { MemberDashboard } from '@/components/dashboard/MemberDashboard';
 import { ProfileDropdown } from '@/components/layout/ProfileDropdown';
 import { DashboardFooter } from '@/components/layout/DashboardFooter';
+import { NotificationBell } from '@/components/layout/NotificationBell';
 
 export default function Dashboard() {
   const { user, loading, userRole } = useAuth();
@@ -92,10 +93,13 @@ export default function Dashboard() {
             </div>
           </div>
           
-          <ProfileDropdown 
-            fullName={profile?.full_name || 'User'} 
-            email={user.email || ''} 
-          />
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <ProfileDropdown 
+              fullName={profile?.full_name || 'User'} 
+              email={user.email || ''} 
+            />
+          </div>
         </div>
       </header>
 
