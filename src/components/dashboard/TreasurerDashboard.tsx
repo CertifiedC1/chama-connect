@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, Wallet, TrendingUp, DollarSign, FileText, Calculator, CreditCard, Plus } from 'lucide-react';
+import { Users, Wallet, TrendingUp, DollarSign, FileText, Calculator, CreditCard, Plus, AlertTriangle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { ContributionManagement } from '@/components/contributions/ContributionManagement';
 import { MakeContribution } from '@/components/contributions/MakeContribution';
 import { RecordManualPayment } from '@/components/contributions/RecordManualPayment';
+import { LoanManagement } from '@/components/loans/LoanManagement';
+import { FinesManagement } from '@/components/fines/FinesManagement';
 import { ImageSlideshow } from '@/components/layout/ImageSlideshow';
 import { RotatingImages } from '@/components/layout/RotatingImages';
 
@@ -23,8 +25,10 @@ interface Stats {
   pendingLoans: number;
 }
 
+type TabType = 'overview' | 'contributions' | 'make-contribution' | 'record-payment' | 'loans' | 'fines';
+
 export function TreasurerDashboard({ isFirstLogin, userName }: TreasurerDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'overview' | 'contributions' | 'make-contribution' | 'record-payment'>('overview');
+  const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [stats, setStats] = useState<Stats>({
     totalMembers: 0,
     totalContributions: 0,
@@ -48,11 +52,11 @@ export function TreasurerDashboard({ isFirstLogin, userName }: TreasurerDashboar
 
       const { data: contributions } = await supabase.from('contributions').select('amount, status, created_at');
       if (contributions) {
-        const total = contributions.reduce((sum, c) => sum + Number(c.amount), 0);
+        const total = contributions.filter(c => c.status === 'completed').reduce((sum, c) => sum + Number(c.amount), 0);
         const now = new Date();
         const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
         const monthly = contributions
-          .filter(c => new Date(c.created_at) >= monthStart)
+          .filter(c => new Date(c.created_at) >= monthStart && c.status === 'completed')
           .reduce((sum, c) => sum + Number(c.amount), 0);
         const pending = contributions.filter(c => c.status === 'pending').length;
         
@@ -79,35 +83,33 @@ export function TreasurerDashboard({ isFirstLogin, userName }: TreasurerDashboar
     }
   };
 
-  if (activeTab === 'contributions') {
-    return (
-      <div>
-        <Button variant="ghost" onClick={() => setActiveTab('overview')} className="mb-4">
-          ← Back to Dashboard
-        </Button>
-        <ContributionManagement />
-      </div>
-    );
-  }
+  const renderContent = () => {
+    switch (activeTab) {
+      case 'contributions':
+        return <ContributionManagement />;
+      case 'make-contribution':
+        return <MakeContribution onSuccess={() => { fetchStats(); setActiveTab('overview'); }} />;
+      case 'record-payment':
+        return <RecordManualPayment onSuccess={() => { fetchStats(); setActiveTab('overview'); }} />;
+      case 'loans':
+        return <LoanManagement />;
+      case 'fines':
+        return <FinesManagement />;
+      default:
+        return null;
+    }
+  };
 
-  if (activeTab === 'make-contribution') {
+  if (activeTab !== 'overview') {
     return (
-      <div>
-        <Button variant="ghost" onClick={() => setActiveTab('overview')} className="mb-4">
-          ← Back to Dashboard
-        </Button>
-        <MakeContribution onSuccess={() => { fetchStats(); setActiveTab('overview'); }} />
-      </div>
-    );
-  }
-
-  if (activeTab === 'record-payment') {
-    return (
-      <div>
-        <Button variant="ghost" onClick={() => setActiveTab('overview')} className="mb-4">
-          ← Back to Dashboard
-        </Button>
-        <RecordManualPayment onSuccess={() => { fetchStats(); setActiveTab('overview'); }} />
+      <div className={activeTab === 'make-contribution' ? "min-h-[60vh] flex flex-col items-center justify-center bg-cover bg-center relative" : ""} style={activeTab === 'make-contribution' ? { backgroundImage: 'url(https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1920&h=1080&fit=crop)' } : {}}>
+        {activeTab === 'make-contribution' && <div className="absolute inset-0 bg-background/80 backdrop-blur-sm" />}
+        <div className={activeTab === 'make-contribution' ? "relative z-10 w-full max-w-4xl px-4" : ""}>
+          <Button variant="ghost" onClick={() => setActiveTab('overview')} className="mb-4">
+            ← Back to Dashboard
+          </Button>
+          {renderContent()}
+        </div>
       </div>
     );
   }
@@ -137,10 +139,8 @@ export function TreasurerDashboard({ isFirstLogin, userName }: TreasurerDashboar
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalMembers}</div>
-            <p className="text-xs text-muted-foreground">Active members</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Collections</CardTitle>
@@ -148,10 +148,8 @@ export function TreasurerDashboard({ isFirstLogin, userName }: TreasurerDashboar
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">KES {stats.totalContributions.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">All time</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">This Month</CardTitle>
@@ -159,10 +157,8 @@ export function TreasurerDashboard({ isFirstLogin, userName }: TreasurerDashboar
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">KES {stats.monthlyContributions.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Monthly contributions</p>
           </CardContent>
         </Card>
-
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Loans</CardTitle>
@@ -170,7 +166,6 @@ export function TreasurerDashboard({ isFirstLogin, userName }: TreasurerDashboar
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.pendingLoans}</div>
-            <p className="text-xs text-muted-foreground">Awaiting approval</p>
           </CardContent>
         </Card>
       </div>
@@ -180,34 +175,30 @@ export function TreasurerDashboard({ isFirstLogin, userName }: TreasurerDashboar
           <CardTitle>Finance Actions</CardTitle>
           <CardDescription>Manage contributions and reports</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Button 
-            variant="outline" 
-            className="h-20 flex-col gap-2"
-            onClick={() => setActiveTab('contributions')}
-          >
+        <CardContent className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+          <Button variant="outline" className="h-20 flex-col gap-2" onClick={() => setActiveTab('contributions')}>
             <Wallet className="h-5 w-5" />
-            <span>Manage Contributions</span>
+            <span className="text-xs">Manage Contributions</span>
           </Button>
-          <Button 
-            variant="outline" 
-            className="h-20 flex-col gap-2"
-            onClick={() => setActiveTab('make-contribution')}
-          >
+          <Button variant="outline" className="h-20 flex-col gap-2" onClick={() => setActiveTab('make-contribution')}>
             <CreditCard className="h-5 w-5" />
-            <span>Make Contribution</span>
+            <span className="text-xs">Make Contribution</span>
           </Button>
-          <Button 
-            variant="outline" 
-            className="h-20 flex-col gap-2"
-            onClick={() => setActiveTab('record-payment')}
-          >
+          <Button variant="outline" className="h-20 flex-col gap-2" onClick={() => setActiveTab('record-payment')}>
             <Plus className="h-5 w-5" />
-            <span>Record Manual Payment</span>
+            <span className="text-xs">Record Manual Payment</span>
+          </Button>
+          <Button variant="outline" className="h-20 flex-col gap-2" onClick={() => setActiveTab('loans')}>
+            <FileText className="h-5 w-5" />
+            <span className="text-xs">View Loans</span>
+          </Button>
+          <Button variant="outline" className="h-20 flex-col gap-2" onClick={() => setActiveTab('fines')}>
+            <AlertTriangle className="h-5 w-5" />
+            <span className="text-xs">Manage Fines</span>
           </Button>
           <Button variant="outline" className="h-20 flex-col gap-2" disabled>
             <FileText className="h-5 w-5" />
-            <span>Generate Report</span>
+            <span className="text-xs">Generate Report</span>
           </Button>
         </CardContent>
       </Card>
