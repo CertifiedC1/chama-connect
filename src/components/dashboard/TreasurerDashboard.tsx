@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, Wallet, TrendingUp, DollarSign, FileText, Calculator, CreditCard, Plus, AlertTriangle } from 'lucide-react';
+import { Users, Wallet, TrendingUp, DollarSign, FileText, Calculator, CreditCard, Plus, AlertTriangle, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { ContributionManagement } from '@/components/contributions/ContributionManagement';
 import { MakeContribution } from '@/components/contributions/MakeContribution';
@@ -10,6 +10,7 @@ import { LoanManagement } from '@/components/loans/LoanManagement';
 import { FinesManagement } from '@/components/fines/FinesManagement';
 import { ImageSlideshow } from '@/components/layout/ImageSlideshow';
 import { RotatingImages } from '@/components/layout/RotatingImages';
+import { useToast } from '@/hooks/use-toast';
 
 interface TreasurerDashboardProps {
   isFirstLogin?: boolean;
@@ -38,6 +39,7 @@ export function TreasurerDashboard({ isFirstLogin, userName }: TreasurerDashboar
     pendingLoans: 0,
   });
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchStats();
@@ -83,10 +85,62 @@ export function TreasurerDashboard({ isFirstLogin, userName }: TreasurerDashboar
     }
   };
 
+  const exportReport = async () => {
+    try {
+      const { data: contributions } = await supabase
+        .from('contributions')
+        .select('*')
+        .eq('status', 'completed');
+      
+      const { data: loans } = await supabase.from('loans').select('*');
+
+      let csvContent = "TREASURER FINANCIAL REPORT\n";
+      csvContent += `Generated: ${new Date().toLocaleString()}\n\n`;
+      
+      csvContent += "=== SUMMARY ===\n";
+      csvContent += `Total Members,${stats.totalMembers}\n`;
+      csvContent += `Total Contributions,KES ${stats.totalContributions.toLocaleString()}\n`;
+      csvContent += `This Month,KES ${stats.monthlyContributions.toLocaleString()}\n`;
+      csvContent += `Pending Contributions,${stats.pendingContributions}\n\n`;
+
+      csvContent += "=== CONTRIBUTIONS ===\n";
+      csvContent += "Date,Amount,Type,Payment Method,Status\n";
+      contributions?.forEach(c => {
+        csvContent += `${c.contribution_date},${c.amount},${c.contribution_type},${c.payment_method},${c.status}\n`;
+      });
+
+      csvContent += "\n=== LOANS ===\n";
+      csvContent += "Date,Amount,Interest,Total,Status,Due Date\n";
+      loans?.forEach(l => {
+        csvContent += `${l.created_at.split('T')[0]},${l.amount},${l.interest_amount},${l.total_amount},${l.status},${l.due_date}\n`;
+      });
+
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `treasurer-report-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Report Downloaded',
+        description: 'Financial report has been exported successfully.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to export report',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'contributions':
-        return <ContributionManagement />;
+        // Treasurer CAN modify contribution statuses (viewOnly = false)
+        return <ContributionManagement viewOnly={false} />;
       case 'make-contribution':
         return <MakeContribution onSuccess={() => { fetchStats(); setActiveTab('overview'); }} />;
       case 'record-payment':
@@ -175,7 +229,7 @@ export function TreasurerDashboard({ isFirstLogin, userName }: TreasurerDashboar
           <CardTitle>Finance Actions</CardTitle>
           <CardDescription>Manage contributions and reports</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+        <CardContent className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           <Button variant="outline" className="h-20 flex-col gap-2" onClick={() => setActiveTab('contributions')}>
             <Wallet className="h-5 w-5" />
             <span className="text-xs">Manage Contributions</span>
@@ -196,9 +250,9 @@ export function TreasurerDashboard({ isFirstLogin, userName }: TreasurerDashboar
             <AlertTriangle className="h-5 w-5" />
             <span className="text-xs">Manage Fines</span>
           </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2" disabled>
-            <FileText className="h-5 w-5" />
-            <span className="text-xs">Generate Report</span>
+          <Button variant="outline" className="h-20 flex-col gap-2" onClick={exportReport}>
+            <Download className="h-5 w-5" />
+            <span className="text-xs">Export Report</span>
           </Button>
         </CardContent>
       </Card>

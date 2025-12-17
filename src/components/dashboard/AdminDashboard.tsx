@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Users, Wallet, TrendingUp, AlertCircle, Settings, Shield, CreditCard, FileText, Plus, AlertTriangle } from 'lucide-react';
+import { Users, Wallet, TrendingUp, AlertCircle, Settings, Shield, CreditCard, FileText, Plus, AlertTriangle, Download } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { MemberManagement } from '@/components/members/MemberManagement';
 import { ContributionManagement } from '@/components/contributions/ContributionManagement';
@@ -11,6 +11,7 @@ import { FinesManagement } from '@/components/fines/FinesManagement';
 import { SystemSettings } from '@/components/settings/SystemSettings';
 import { ImageSlideshow } from '@/components/layout/ImageSlideshow';
 import { RotatingImages } from '@/components/layout/RotatingImages';
+import { useToast } from '@/hooks/use-toast';
 
 interface AdminDashboardProps {
   isFirstLogin?: boolean;
@@ -41,6 +42,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
     totalFines: 0,
   });
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchStats();
@@ -116,6 +118,69 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
     }
   };
 
+  const exportReport = async () => {
+    try {
+      // Fetch all data for report
+      const { data: contributions } = await supabase
+        .from('contributions')
+        .select('*')
+        .eq('status', 'completed');
+      
+      const { data: loans } = await supabase.from('loans').select('*');
+      const { data: fines } = await supabase.from('fines').select('*');
+
+      // Create CSV content
+      let csvContent = "CHAMA FINANCIAL REPORT\n";
+      csvContent += `Generated: ${new Date().toLocaleString()}\n\n`;
+      
+      csvContent += "=== SUMMARY ===\n";
+      csvContent += `Total Members,${stats.totalMembers}\n`;
+      csvContent += `Active Members,${stats.activeMembers}\n`;
+      csvContent += `Total Contributions,KES ${stats.totalContributions.toLocaleString()}\n`;
+      csvContent += `Total Loans Issued,KES ${stats.totalLoansIssued.toLocaleString()}\n`;
+      csvContent += `Unpaid Fines,KES ${stats.totalFines.toLocaleString()}\n\n`;
+
+      csvContent += "=== CONTRIBUTIONS ===\n";
+      csvContent += "Date,Amount,Type,Status\n";
+      contributions?.forEach(c => {
+        csvContent += `${c.contribution_date},${c.amount},${c.contribution_type},${c.status}\n`;
+      });
+
+      csvContent += "\n=== LOANS ===\n";
+      csvContent += "Date,Amount,Interest,Total,Status,Due Date\n";
+      loans?.forEach(l => {
+        csvContent += `${l.created_at.split('T')[0]},${l.amount},${l.interest_amount},${l.total_amount},${l.status},${l.due_date}\n`;
+      });
+
+      csvContent += "\n=== FINES ===\n";
+      csvContent += "Date,Amount,Type,Status\n";
+      fines?.forEach(f => {
+        csvContent += `${f.created_at.split('T')[0]},${f.amount},${f.fine_type},${f.status}\n`;
+      });
+
+      // Download file
+      const blob = new Blob([csvContent], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `chama-report-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+
+      toast({
+        title: 'Report Downloaded',
+        description: 'Financial report has been exported successfully.',
+      });
+    } catch (error) {
+      console.error('Error exporting report:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to export report',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (activeTab === 'members') {
     return (
       <div>
@@ -133,7 +198,8 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
         <Button variant="ghost" onClick={() => setActiveTab('overview')} className="mb-4">
           ← Back to Dashboard
         </Button>
-        <ContributionManagement />
+        {/* Admin can only view contributions, not change status */}
+        <ContributionManagement viewOnly={true} />
       </div>
     );
   }
@@ -292,13 +358,13 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
         </Card>
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions - Updated layout matching the image */}
       <Card>
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
           <CardDescription>Admin management tools</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+        <CardContent className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           <Button 
             variant="outline" 
             className="h-20 flex-col gap-2"
@@ -326,6 +392,14 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           <Button 
             variant="outline" 
             className="h-20 flex-col gap-2"
+            onClick={() => setActiveTab('settings')}
+          >
+            <Settings className="h-5 w-5" />
+            <span className="text-xs">System Settings</span>
+          </Button>
+          <Button 
+            variant="outline" 
+            className="h-20 flex-col gap-2"
             onClick={() => setActiveTab('loans')}
           >
             <CreditCard className="h-5 w-5" />
@@ -342,10 +416,10 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           <Button 
             variant="outline" 
             className="h-20 flex-col gap-2"
-            onClick={() => setActiveTab('settings')}
+            onClick={exportReport}
           >
-            <Settings className="h-5 w-5" />
-            <span className="text-xs">System Settings</span>
+            <Download className="h-5 w-5" />
+            <span className="text-xs">Export Report</span>
           </Button>
         </CardContent>
       </Card>
