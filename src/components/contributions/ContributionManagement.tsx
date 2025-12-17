@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Check, X, Loader2, MoreHorizontal, RotateCcw } from 'lucide-react';
+import { Search, Check, X, Loader2, MoreHorizontal, RotateCcw, Eye } from 'lucide-react';
 
 interface Contribution {
   id: string;
@@ -24,7 +24,11 @@ interface Contribution {
   member_name?: string;
 }
 
-export function ContributionManagement() {
+interface ContributionManagementProps {
+  viewOnly?: boolean; // For admin - view only mode
+}
+
+export function ContributionManagement({ viewOnly = false }: ContributionManagementProps) {
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -75,6 +79,8 @@ export function ContributionManagement() {
   };
 
   const updateContributionStatus = async (id: string, status: 'completed' | 'rejected' | 'pending', userId?: string, amount?: number) => {
+    if (viewOnly) return; // Prevent status changes in view-only mode
+    
     setUpdating(id);
     try {
       const { error } = await supabase
@@ -168,7 +174,9 @@ export function ContributionManagement() {
     <Card>
       <CardHeader>
         <CardTitle>Contribution Management</CardTitle>
-        <CardDescription>View and manage all contributions</CardDescription>
+        <CardDescription>
+          {viewOnly ? 'View all contributions (read-only)' : 'View and manage all contributions'}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         {/* Summary */}
@@ -234,13 +242,13 @@ export function ContributionManagement() {
                 <TableHead>Reference</TableHead>
                 <TableHead>Date</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                {!viewOnly && <TableHead className="text-right">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredContributions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={viewOnly ? 6 : 7} className="text-center py-8 text-muted-foreground">
                     No contributions found
                   </TableCell>
                 </TableRow>
@@ -253,77 +261,66 @@ export function ContributionManagement() {
                     <TableCell>{contribution.mpesa_reference || '-'}</TableCell>
                     <TableCell>{new Date(contribution.contribution_date).toLocaleDateString()}</TableCell>
                     <TableCell>{getStatusBadge(contribution.status)}</TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" disabled={updating === contribution.id}>
-                            {updating === contribution.id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <MoreHorizontal className="h-4 w-4" />
+                    {!viewOnly && (
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" disabled={updating === contribution.id}>
+                              {updating === contribution.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <MoreHorizontal className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            {contribution.status === 'pending' && (
+                              <>
+                                <DropdownMenuItem
+                                  className="text-green-600"
+                                  onClick={() => updateContributionStatus(
+                                    contribution.id, 
+                                    'completed',
+                                    contribution.user_id,
+                                    contribution.amount
+                                  )}
+                                >
+                                  <Check className="h-4 w-4 mr-2" />
+                                  Approve
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={() => updateContributionStatus(
+                                    contribution.id, 
+                                    'rejected',
+                                    contribution.user_id,
+                                    contribution.amount
+                                  )}
+                                >
+                                  <X className="h-4 w-4 mr-2" />
+                                  Reject
+                                </DropdownMenuItem>
+                              </>
                             )}
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {contribution.status === 'pending' && (
-                            <>
+                            {/* Treasurer can revert any status to pending */}
+                            {(contribution.status === 'completed' || contribution.status === 'rejected') && (
                               <DropdownMenuItem
-                                className="text-green-600"
+                                className="text-yellow-600"
                                 onClick={() => updateContributionStatus(
                                   contribution.id, 
-                                  'completed',
+                                  'pending',
                                   contribution.user_id,
                                   contribution.amount
                                 )}
                               >
-                                <Check className="h-4 w-4 mr-2" />
-                                Approve
+                                <RotateCcw className="h-4 w-4 mr-2" />
+                                Revert to Pending
                               </DropdownMenuItem>
-                              <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => updateContributionStatus(
-                                  contribution.id, 
-                                  'rejected',
-                                  contribution.user_id,
-                                  contribution.amount
-                                )}
-                              >
-                                <X className="h-4 w-4 mr-2" />
-                                Reject
-                              </DropdownMenuItem>
-                            </>
-                          )}
-                          {contribution.status === 'completed' && (
-                            <DropdownMenuItem
-                              className="text-yellow-600"
-                              onClick={() => updateContributionStatus(
-                                contribution.id, 
-                                'pending',
-                                contribution.user_id,
-                                contribution.amount
-                              )}
-                            >
-                              <RotateCcw className="h-4 w-4 mr-2" />
-                              Revert to Pending
-                            </DropdownMenuItem>
-                          )}
-                          {contribution.status === 'rejected' && (
-                            <DropdownMenuItem
-                              className="text-yellow-600"
-                              onClick={() => updateContributionStatus(
-                                contribution.id, 
-                                'pending',
-                                contribution.user_id,
-                                contribution.amount
-                              )}
-                            >
-                              <RotateCcw className="h-4 w-4 mr-2" />
-                              Revert to Pending
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
               )}
