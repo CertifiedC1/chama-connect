@@ -9,26 +9,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, Building2, Wallet, CreditCard, AlertTriangle, Shield, Users, FileText, Settings } from 'lucide-react';
+import { Loader2, Building2, Wallet, CreditCard, AlertTriangle, Shield, Save } from 'lucide-react';
 
 export function SystemSettings() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
-    // Chama Profile
     chama_name: 'My Chama',
     chama_logo: '',
     description: '',
     start_date: '',
     meeting_day: 1,
-    // Contribution Settings
     contribution_amount: 1000,
     contribution_frequency: 'monthly',
     grace_period_days: 3,
     late_contribution_fine: 100,
     enable_auto_fines: true,
-    // Loan Settings
     max_loan_amount: 50000,
     loan_eligibility_months: 2,
     loan_interest_rate: 10,
@@ -102,7 +99,7 @@ export function SystemSettings() {
 
       toast({
         title: 'Settings Saved',
-        description: 'Your changes have been saved successfully.',
+        description: 'All your changes have been saved successfully.',
       });
     } catch (error: any) {
       console.error('Error saving settings:', error);
@@ -127,6 +124,16 @@ export function SystemSettings() {
     }
   };
 
+  const getDaySuffix = (day: number) => {
+    if (day >= 11 && day <= 13) return 'th';
+    switch (day % 10) {
+      case 1: return 'st';
+      case 2: return 'nd';
+      case 3: return 'rd';
+      default: return 'th';
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -137,36 +144,50 @@ export function SystemSettings() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold">System Settings</h2>
-        <p className="text-muted-foreground">Configure your Chama settings</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold">System Settings</h2>
+          <p className="text-muted-foreground">Configure your Chama settings</p>
+        </div>
+        <Button onClick={handleSave} disabled={saving} size="lg" className="w-full sm:w-auto">
+          {saving ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="mr-2 h-4 w-4" />
+              Save All Settings
+            </>
+          )}
+        </Button>
       </div>
 
       <Tabs defaultValue="profile" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5">
-          <TabsTrigger value="profile" className="gap-2">
-            <Building2 className="h-4 w-4" />
-            <span className="hidden sm:inline">Profile</span>
+        <TabsList className="flex flex-wrap h-auto gap-1 p-1 w-full">
+          <TabsTrigger value="profile" className="flex-1 min-w-[80px] gap-1 text-xs sm:text-sm px-2 py-2">
+            <Building2 className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden xs:inline">Profile</span>
           </TabsTrigger>
-          <TabsTrigger value="contributions" className="gap-2">
-            <Wallet className="h-4 w-4" />
-            <span className="hidden sm:inline">Contributions</span>
+          <TabsTrigger value="contributions" className="flex-1 min-w-[80px] gap-1 text-xs sm:text-sm px-2 py-2">
+            <Wallet className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden xs:inline">Contrib.</span>
           </TabsTrigger>
-          <TabsTrigger value="loans" className="gap-2">
-            <CreditCard className="h-4 w-4" />
-            <span className="hidden sm:inline">Loans</span>
+          <TabsTrigger value="loans" className="flex-1 min-w-[80px] gap-1 text-xs sm:text-sm px-2 py-2">
+            <CreditCard className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden xs:inline">Loans</span>
           </TabsTrigger>
-          <TabsTrigger value="fines" className="gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            <span className="hidden sm:inline">Fines</span>
+          <TabsTrigger value="fines" className="flex-1 min-w-[80px] gap-1 text-xs sm:text-sm px-2 py-2">
+            <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden xs:inline">Fines</span>
           </TabsTrigger>
-          <TabsTrigger value="security" className="gap-2">
-            <Shield className="h-4 w-4" />
-            <span className="hidden sm:inline">Security</span>
+          <TabsTrigger value="security" className="flex-1 min-w-[80px] gap-1 text-xs sm:text-sm px-2 py-2">
+            <Shield className="h-4 w-4 flex-shrink-0" />
+            <span className="hidden xs:inline">Security</span>
           </TabsTrigger>
         </TabsList>
 
-        {/* Chama Profile Settings */}
         <TabsContent value="profile">
           <Card>
             <CardHeader>
@@ -189,7 +210,7 @@ export function SystemSettings() {
 
               <div className="space-y-2">
                 <Label htmlFor="chama_logo">Chama Logo</Label>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 flex-wrap">
                   {settings.chama_logo && (
                     <img 
                       src={settings.chama_logo} 
@@ -218,7 +239,7 @@ export function SystemSettings() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="start_date">Start Date</Label>
                   <Input
@@ -238,9 +259,9 @@ export function SystemSettings() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {Array.from({ length: 28 }, (_, i) => i + 1).map(day => (
+                      {Array.from({ length: 31 }, (_, i) => i + 1).map(day => (
                         <SelectItem key={day} value={day.toString()}>
-                          {day}{day === 1 ? 'st' : day === 2 ? 'nd' : day === 3 ? 'rd' : 'th'}
+                          {day}{getDaySuffix(day)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -251,7 +272,6 @@ export function SystemSettings() {
           </Card>
         </TabsContent>
 
-        {/* Contribution Settings */}
         <TabsContent value="contributions">
           <Card>
             <CardHeader>
@@ -262,7 +282,7 @@ export function SystemSettings() {
               <CardDescription>Configure contribution rules</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="contribution_amount">Standard Amount (KES)</Label>
                   <Input
@@ -290,7 +310,7 @@ export function SystemSettings() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="grace_period_days">Grace Period (Days)</Label>
                   <Input
@@ -327,7 +347,6 @@ export function SystemSettings() {
           </Card>
         </TabsContent>
 
-        {/* Loan Settings */}
         <TabsContent value="loans">
           <Card>
             <CardHeader>
@@ -338,7 +357,7 @@ export function SystemSettings() {
               <CardDescription>Configure loan rules and interest</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="max_loan_amount">Maximum Loan (KES)</Label>
                   <Input
@@ -361,7 +380,7 @@ export function SystemSettings() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="loan_interest_rate">Interest Rate (%)</Label>
                   <Input
@@ -390,7 +409,7 @@ export function SystemSettings() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="max_repayment_months">Max Repayment Period (Months)</Label>
                   <Input
@@ -427,7 +446,6 @@ export function SystemSettings() {
           </Card>
         </TabsContent>
 
-        {/* Fine Settings */}
         <TabsContent value="fines">
           <Card>
             <CardHeader>
@@ -470,7 +488,6 @@ export function SystemSettings() {
           </Card>
         </TabsContent>
 
-        {/* Security Settings */}
         <TabsContent value="security">
           <Card>
             <CardHeader>
@@ -506,18 +523,13 @@ export function SystemSettings() {
         </TabsContent>
       </Tabs>
 
-      <div className="flex justify-end">
-        <Button onClick={handleSave} disabled={saving} size="lg">
+      {/* Floating Save Button for Mobile */}
+      <div className="fixed bottom-4 right-4 sm:hidden z-50">
+        <Button onClick={handleSave} disabled={saving} size="lg" className="rounded-full shadow-lg">
           {saving ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Saving...
-            </>
+            <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
-            <>
-              <Settings className="mr-2 h-4 w-4" />
-              Save All Settings
-            </>
+            <Save className="h-5 w-5" />
           )}
         </Button>
       </div>

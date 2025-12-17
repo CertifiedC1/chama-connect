@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Wallet, TrendingUp, Calendar, User, CreditCard, History, Clock, AlertTriangle } from 'lucide-react';
+import { Wallet, TrendingUp, Calendar, User, CreditCard, History, Clock, AlertTriangle, Receipt } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { MakeContribution } from '@/components/contributions/MakeContribution';
 import { MyContributions } from '@/components/contributions/MyContributions';
 import { LoanApplication } from '@/components/loans/LoanApplication';
+import { LoanRepaymentTracking } from '@/components/loans/LoanRepaymentTracking';
 import { ImageSlideshow } from '@/components/layout/ImageSlideshow';
 import { RotatingImages } from '@/components/layout/RotatingImages';
 
@@ -26,7 +27,7 @@ interface Stats {
   contributionCount: number;
 }
 
-type TabType = 'overview' | 'contribute' | 'history' | 'apply-loan';
+type TabType = 'overview' | 'contribute' | 'history' | 'apply-loan' | 'loan-tracking';
 
 export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashboardProps) {
   const { user } = useAuth();
@@ -198,6 +199,21 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
     );
   }
 
+  if (activeTab === 'loan-tracking') {
+    return (
+      <div>
+        <Button 
+          variant="ghost" 
+          onClick={() => setActiveTab('overview')} 
+          className="mb-4"
+        >
+          ← Back to Dashboard
+        </Button>
+        <LoanRepaymentTracking />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Welcome Message */}
@@ -321,14 +337,14 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
           <CardTitle>Quick Actions</CardTitle>
           <CardDescription>Manage your contributions</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-3">
+        <CardContent className="grid gap-4 grid-cols-2 md:grid-cols-4">
           <Button 
             variant="outline" 
             className="h-20 flex-col gap-2"
             onClick={() => setActiveTab('contribute')}
           >
             <CreditCard className="h-5 w-5" />
-            <span>Make Contribution</span>
+            <span className="text-xs sm:text-sm">Make Contribution</span>
           </Button>
           <Button 
             variant="outline" 
@@ -336,7 +352,7 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
             onClick={() => setActiveTab('history')}
           >
             <History className="h-5 w-5" />
-            <span>View History</span>
+            <span className="text-xs sm:text-sm">View History</span>
           </Button>
           <Button 
             variant="outline" 
@@ -345,7 +361,16 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
             disabled={stats.contributionCount < 2}
           >
             <TrendingUp className="h-5 w-5" />
-            <span>{stats.contributionCount < 2 ? `Apply for Loan (${stats.contributionCount}/2 contributions)` : 'Apply for Loan'}</span>
+            <span className="text-xs sm:text-sm">{stats.contributionCount < 2 ? `Apply (${stats.contributionCount}/2)` : 'Apply Loan'}</span>
+          </Button>
+          <Button 
+            variant="outline" 
+            className="h-20 flex-col gap-2"
+            onClick={() => setActiveTab('loan-tracking')}
+            disabled={stats.loanStatus === 'None'}
+          >
+            <Receipt className="h-5 w-5" />
+            <span className="text-xs sm:text-sm">Loan Tracking</span>
           </Button>
         </CardContent>
       </Card>

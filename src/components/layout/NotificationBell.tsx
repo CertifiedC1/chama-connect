@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,19 +27,46 @@ interface Notification {
   created_at: string;
 }
 
+// Notification sound URL (free notification sound)
+const NOTIFICATION_SOUND_URL = 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3';
+
 export function NotificationBell() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    // Create audio element for notification sound
+    audioRef.current = new Audio(NOTIFICATION_SOUND_URL);
+    audioRef.current.volume = 0.5;
+    
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (user) {
       fetchNotifications();
-      subscribeToNotifications();
+      const unsubscribe = subscribeToNotifications();
+      return unsubscribe;
     }
   }, [user]);
+
+  const playNotificationSound = () => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(err => {
+        console.log('Could not play notification sound:', err);
+      });
+    }
+  };
 
   const fetchNotifications = async () => {
     if (!user) return;
@@ -72,6 +99,7 @@ export function NotificationBell() {
           const newNotification = payload.new as Notification;
           setNotifications(prev => [newNotification, ...prev.slice(0, 9)]);
           setUnreadCount(prev => prev + 1);
+          playNotificationSound();
         }
       )
       .subscribe();
@@ -96,7 +124,6 @@ export function NotificationBell() {
   const handleNotificationClick = (notification: Notification) => {
     markAsRead(notification.id);
     
-    // Navigate based on notification type
     if (notification.related_type === 'contribution') {
       navigate('/dashboard');
     } else if (notification.related_type === 'loan') {
@@ -150,7 +177,7 @@ export function NotificationBell() {
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <Badge 
-              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs animate-pulse"
               variant="destructive"
             >
               {unreadCount > 9 ? '9+' : unreadCount}
@@ -199,7 +226,7 @@ export function NotificationBell() {
                     </p>
                   </div>
                   {!notification.is_read && (
-                    <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+                    <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 animate-pulse" />
                   )}
                 </div>
               </DropdownMenuItem>
