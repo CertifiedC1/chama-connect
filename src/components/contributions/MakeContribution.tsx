@@ -220,9 +220,11 @@ function PaymentPage({ amount, phoneNumber, contributionType, onBack, onSuccess 
           )}
 
           {paymentStatus === 'success' && (
-            <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-lg text-center">
-              <CheckCircle className="h-8 w-8 mx-auto text-green-600 mb-2" />
-              <p className="text-sm font-medium text-green-800 dark:text-green-200">Payment Successful!</p>
+            <div className="p-4 bg-green-50 dark:bg-green-950/30 rounded-lg text-center animate-in fade-in zoom-in duration-300">
+              <CheckCircle className="h-12 w-12 mx-auto text-green-600 mb-3" />
+              <p className="text-lg font-bold text-green-800 dark:text-green-200">Payment Successful!</p>
+              <p className="text-sm text-green-600 mt-1">KES {amount.toLocaleString()} received</p>
+              <p className="text-xs text-green-500 mt-2">Redirecting to dashboard...</p>
             </div>
           )}
 
