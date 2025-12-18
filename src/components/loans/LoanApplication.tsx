@@ -122,7 +122,7 @@ export function LoanApplication({ onSuccess }: LoanApplicationProps) {
       const dueDate = new Date();
       dueDate.setMonth(dueDate.getMonth() + Number(formData.repaymentMonths));
 
-      const { error } = await supabase.from('loans').insert({
+      const { data: loan, error } = await supabase.from('loans').insert({
         user_id: user.id,
         amount: amount,
         interest_rate: settings?.loan_interest_rate || 10,
@@ -132,7 +132,7 @@ export function LoanApplication({ onSuccess }: LoanApplicationProps) {
         phone_number: formData.phoneNumber,
         due_date: dueDate.toISOString().split('T')[0],
         status: 'pending',
-      });
+      }).select().single();
 
       if (error) throw error;
 
@@ -143,6 +143,21 @@ export function LoanApplication({ onSuccess }: LoanApplicationProps) {
         message: `Your loan application for KES ${amount.toLocaleString()} is pending approval.`,
         type: 'loan_pending',
       });
+
+      // Send email notification for loan application
+      try {
+        await supabase.functions.invoke('send-notification-email', {
+          body: {
+            type: 'loan_application',
+            userId: user.id,
+            amount: amount,
+            loanId: loan?.id,
+            loanPurpose: formData.purpose,
+          },
+        });
+      } catch (emailErr) {
+        console.error('Failed to send loan email:', emailErr);
+      }
 
       // Notify admins about new loan application
       const { data: admins } = await supabase

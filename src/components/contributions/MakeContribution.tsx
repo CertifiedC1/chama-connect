@@ -37,23 +37,44 @@ function PaymentPage({ amount, phoneNumber, contributionType, onBack, onSuccess 
     };
   }, []);
 
-  const pollPaymentStatus = async (checkoutRequestId: string, contributionId: string) => {
+  const pollPaymentStatus = async (transactionId: string, contributionId: string) => {
     let attempts = 0;
-    const maxAttempts = 20; // Poll for 60 seconds (20 * 3 seconds)
+    const maxAttempts = 40; // Poll for 120 seconds (40 * 3 seconds)
 
     pollingRef.current = setInterval(async () => {
       attempts++;
       
       try {
-        // Check the mpesa_transactions table for status update
+        // Check multiple ways: by transactionId stored in mpesa_reference or by checkout_request_id
         const { data, error } = await supabase
           .from('mpesa_transactions')
-          .select('status, mpesa_reference')
-          .eq('checkout_request_id', checkoutRequestId)
+          .select('status, mpesa_reference, checkout_request_id')
+          .or(`checkout_request_id.eq.${transactionId},mpesa_reference.eq.${transactionId}`)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        // Also check contribution directly
+        const { data: contrib } = await supabase
+          .from('contributions')
+          .select('status')
+          .eq('id', contributionId)
           .single();
 
+        if (contrib?.status === 'completed') {
+          clearInterval(pollingRef.current!);
+          setPaymentStatus('success');
+          toast({
+            title: 'Payment Successful!',
+            description: `Your contribution of KES ${amount.toLocaleString()} has been received.`,
+          });
+          setTimeout(() => onSuccess?.(), 2000);
+          return;
+        }
+
         if (!error && data) {
-          if (data.status === 'completed') {
+          // Check for 'success' OR 'completed' status (webhook sets 'success')
+          if (data.status === 'success' || data.status === 'completed') {
             clearInterval(pollingRef.current!);
             setPaymentStatus('success');
             
@@ -156,16 +177,17 @@ function PaymentPage({ amount, phoneNumber, contributionType, onBack, onSuccess 
       if (error) throw error;
 
       if (data?.success) {
-        setTransactionId(data.checkoutRequestId);
+        const txnId = data.transactionId || data.checkoutRequestId || data.internalId;
+        setTransactionId(txnId);
         
         toast({
           title: 'M-Pesa Prompt Sent',
           description: 'Please check your phone and enter your M-Pesa PIN to complete payment.',
         });
 
-        // Start polling for payment status
-        if (data.checkoutRequestId) {
-          pollPaymentStatus(data.checkoutRequestId, contribution.id);
+        // Start polling for payment status using any available ID
+        if (txnId) {
+          pollPaymentStatus(txnId, contribution.id);
         }
       } else {
         throw new Error(data?.error || 'Failed to initiate payment');
