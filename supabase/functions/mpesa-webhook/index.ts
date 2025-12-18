@@ -91,28 +91,61 @@ serve(async (req) => {
         .eq('id', txn.id);
 
       if (txn.transaction_type === 'contribution' && txn.user_id) {
-        const { data: contribution, error: contribError } = await supabase
+        // Update existing contribution or create new one
+        const { data: existingContrib } = await supabase
           .from('contributions')
-          .insert({
-            user_id: txn.user_id,
-            amount: txn.amount,
-            contribution_type: 'monthly',
-            payment_method: 'mpesa',
-            mpesa_reference: transactionId,
-            status: 'completed',
-          })
-          .select()
-          .single();
+          .select('id')
+          .eq('user_id', txn.user_id)
+          .eq('status', 'pending')
+          .eq('amount', txn.amount)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
-        if (!contribError && contribution) {
-          await supabase.from('notifications').insert({
-            user_id: txn.user_id,
-            title: 'Payment Successful',
-            message: `Your contribution of KES ${txn.amount.toLocaleString()} has been received.`,
-            type: 'contribution_success',
-            related_id: contribution.id,
-            related_type: 'contribution',
+        let contributionId = existingContrib?.id;
+
+        if (existingContrib) {
+          await supabase
+            .from('contributions')
+            .update({ status: 'completed', mpesa_reference: transactionId })
+            .eq('id', existingContrib.id);
+        } else {
+          const { data: newContrib } = await supabase
+            .from('contributions')
+            .insert({
+              user_id: txn.user_id,
+              amount: txn.amount,
+              contribution_type: 'monthly',
+              payment_method: 'mpesa',
+              mpesa_reference: transactionId,
+              status: 'completed',
+            })
+            .select()
+            .single();
+          contributionId = newContrib?.id;
+        }
+
+        await supabase.from('notifications').insert({
+          user_id: txn.user_id,
+          title: 'Payment Successful',
+          message: `Your contribution of KES ${txn.amount.toLocaleString()} has been received.`,
+          type: 'contribution_success',
+          related_id: contributionId,
+          related_type: 'contribution',
+        });
+
+        // Send email notification
+        try {
+          await supabase.functions.invoke('send-notification-email', {
+            body: {
+              type: 'payment_success',
+              userId: txn.user_id,
+              amount: txn.amount,
+              reference: transactionId,
+            },
           });
+        } catch (emailErr) {
+          console.error('Failed to send email notification:', emailErr);
         }
       }
 
