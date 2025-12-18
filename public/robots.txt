@@ -1,14 +1,19 @@
 User-agent: Googlebot
 Allow: /
+Disallow: /admin-portal-987xyz
 
 User-agent: Bingbot
 Allow: /
+Disallow: /admin-portal-987xyz
 
 User-agent: Twitterbot
 Allow: /
+Disallow: /admin-portal-987xyz
 
 User-agent: facebookexternalhit
 Allow: /
+Disallow: /admin-portal-987xyz
 
 User-agent: *
 Allow: /
+Disallow: /admin-portal-987xyz

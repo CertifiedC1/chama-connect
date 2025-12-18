@@ -72,7 +72,7 @@ export function DashboardFooter({ onNavigate }: DashboardFooterProps) {
               <li>Nairobi, Kenya</li>
               <li><span className="text-primary">Support:</span></li>
               <li><a href="mailto:support@chamaapp.com" className="text-primary hover:underline">support@chamaapp.com</a></li>
-              <li>(+254) 712345678</li>
+              <li>(+254) 111653881</li>
             </ul>
           </div>
 
