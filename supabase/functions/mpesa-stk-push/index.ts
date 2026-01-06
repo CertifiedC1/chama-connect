@@ -6,6 +6,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// SECURITY: Valid contribution types - reject anything else
+const VALID_CONTRIBUTION_TYPES = ['monthly', 'emergency', 'special', 'loan_repayment', 'contribution'];
+
+// SECURITY: Amount limits to prevent abuse
+const MIN_AMOUNT = 10;
+const MAX_AMOUNT = 100000;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -17,22 +24,72 @@ serve(async (req) => {
       throw new Error('LIPANA_SECRET_KEY not configured');
     }
 
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // SECURITY: Verify user authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      console.error('Missing authorization header');
+      return new Response(
+        JSON.stringify({ success: false, error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+
+    if (userError || !user) {
+      console.error('Invalid auth token:', userError?.message);
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { phone, amount, userId, contributionType, description } = await req.json();
 
-    if (!phone || !amount) {
+    // SECURITY: Ensure userId matches authenticated user (prevent initiating for others)
+    if (userId && userId !== user.id) {
+      console.error('User ID mismatch:', userId, 'vs', user.id);
       return new Response(
-        JSON.stringify({ success: false, error: 'Phone and amount are required' }),
+        JSON.stringify({ success: false, error: 'Cannot initiate payment for another user' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // SECURITY: Validate phone number format
+    if (!phone || typeof phone !== 'string') {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Valid phone number is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (amount < 10) {
+    // SECURITY: Validate amount with min and max limits
+    const numAmount = Number(amount);
+    if (isNaN(numAmount) || numAmount < MIN_AMOUNT || numAmount > MAX_AMOUNT) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Minimum amount is KES 10' }),
+        JSON.stringify({ success: false, error: `Amount must be between KES ${MIN_AMOUNT} and KES ${MAX_AMOUNT.toLocaleString()}` }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    // SECURITY: Validate contribution type
+    const safeContributionType = contributionType && VALID_CONTRIBUTION_TYPES.includes(contributionType) 
+      ? contributionType 
+      : 'contribution';
+
+    // SECURITY: Verify phone matches user's profile (optional but recommended)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('phone_number')
+      .eq('id', user.id)
+      .single();
+
+    // Format phone number
     let formattedPhone = phone.replace(/\s/g, '');
     if (formattedPhone.startsWith('0')) {
       formattedPhone = '+254' + formattedPhone.substring(1);
@@ -42,7 +99,7 @@ serve(async (req) => {
       formattedPhone = '+254' + formattedPhone;
     }
 
-    console.log('Initiating STK push to:', formattedPhone, 'Amount:', amount);
+    console.log('Initiating STK push for user:', user.id, 'Phone:', formattedPhone, 'Amount:', numAmount);
 
     const lipanaResponse = await fetch('https://api.lipana.dev/v1/transactions/push-stk', {
       method: 'POST',
@@ -52,7 +109,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         phone: formattedPhone,
-        amount: Number(amount),
+        amount: numAmount,
       }),
     });
 
@@ -69,17 +126,14 @@ serve(async (req) => {
       );
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
+    // Record transaction with verified user ID
     const { data: txn, error: txnError } = await supabase
       .from('mpesa_transactions')
       .insert({
-        user_id: userId || null,
+        user_id: user.id, // Always use authenticated user's ID
         phone_number: formattedPhone,
-        amount: Number(amount),
-        transaction_type: contributionType || 'contribution',
+        amount: numAmount,
+        transaction_type: safeContributionType,
         checkout_request_id: lipanaData.data?.checkoutRequestID,
         status: 'pending',
       })

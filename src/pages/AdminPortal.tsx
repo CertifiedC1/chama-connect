@@ -67,14 +67,18 @@ export default function AdminPortal() {
   const checkLockout = async () => {
     if (!user) return;
     
-    const { data } = await supabase
-      .from('admin_lockouts')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-    
-    if (data) {
-      if (data.locked_until && new Date(data.locked_until) > new Date()) {
+    try {
+      // SECURITY: Use edge function to check lockout status (server-side)
+      const { data, error } = await supabase.functions.invoke('admin-lockout', {
+        body: { action: 'check' },
+      });
+      
+      if (error) {
+        console.error('Error checking lockout:', error);
+        return;
+      }
+      
+      if (data?.isLocked) {
         setIsLocked(true);
         toast({
           title: 'Account Locked',
@@ -84,7 +88,9 @@ export default function AdminPortal() {
         navigate('/dashboard');
         return;
       }
-      setFailedAttempts(data.failed_attempts || 0);
+      setFailedAttempts(data?.failedAttempts || 0);
+    } catch (error) {
+      console.error('Lockout check failed:', error);
     }
   };
 
@@ -111,29 +117,25 @@ export default function AdminPortal() {
     setLoading(true);
     
     try {
-      // Re-authenticate with password
-      const { error } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password,
+      // SECURITY: Use edge function for re-authentication (server-side lockout management)
+      const { data, error } = await supabase.functions.invoke('admin-lockout', {
+        body: { action: 'verify', password },
       });
-
+      
       if (error) {
-        // Increment failed attempts
-        const newAttempts = failedAttempts + 1;
-        setFailedAttempts(newAttempts);
+        toast({
+          title: 'Error',
+          description: 'Authentication service unavailable',
+          variant: 'destructive',
+        });
+        return;
+      }
+      
+      if (!data?.success) {
+        setFailedAttempts(5 - (data?.attemptsRemaining || 0));
         
-        await supabase
-          .from('admin_lockouts')
-          .upsert({
-            user_id: user.id,
-            failed_attempts: newAttempts,
-            locked_until: newAttempts >= 5 ? new Date(Date.now() + 30 * 60 * 1000).toISOString() : null,
-            updated_at: new Date().toISOString(),
-          });
-
-        if (newAttempts >= 5) {
+        if (data?.isLocked) {
           setIsLocked(true);
-          await logAccess('reauth_failed', false, 'Account locked - too many attempts');
           toast({
             title: 'Account Locked',
             description: 'Too many failed attempts. Try again in 30 minutes.',
@@ -142,27 +144,16 @@ export default function AdminPortal() {
           navigate('/dashboard');
           return;
         }
-
-        await logAccess('reauth_failed', false, 'Invalid password');
+        
         toast({
           title: 'Authentication Failed',
-          description: `Invalid password. ${5 - newAttempts} attempts remaining.`,
+          description: `Invalid password. ${data?.attemptsRemaining || 0} attempts remaining.`,
           variant: 'destructive',
         });
         return;
       }
 
-      // Success - reset failed attempts
-      await supabase
-        .from('admin_lockouts')
-        .upsert({
-          user_id: user.id,
-          failed_attempts: 0,
-          locked_until: null,
-          updated_at: new Date().toISOString(),
-        });
-
-      await logAccess('reauth_success', true);
+      // Success
       setIsAuthenticated(true);
       setIsReauthenticating(false);
       setPassword('');

@@ -28,6 +28,8 @@ const validateEmail = (email: string) => {
   return /^[^\s@]+@gmail\.com$/i.test(email);
 };
 
+// SECURITY: Role selection removed from signup - all users start as 'member'
+// Admins must be promoted manually by existing admins
 const signUpSchema = z.object({
   fullName: z.string().refine(validateFullName, {
     message: 'Invalid name!'
@@ -40,7 +42,6 @@ const signUpSchema = z.object({
   }),
   password: z.string().min(6, 'Password must be at least 6 characters!'),
   confirmPassword: z.string(),
-  userRole: z.enum(['member', 'treasurer', 'admin']),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match!",
   path: ["confirmPassword"],
@@ -67,7 +68,6 @@ export default function Auth() {
     email: '',
     password: '',
     confirmPassword: '',
-    userRole: 'member' as AppRole,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [shakeFields, setShakeFields] = useState<Record<string, boolean>>({});
@@ -150,12 +150,7 @@ export default function Auth() {
     validateField(name, value);
   };
 
-  const handleRoleChange = (value: string) => {
-    setFormData(prev => ({ ...prev, userRole: value as AppRole }));
-    if (errors.userRole) {
-      setErrors(prev => ({ ...prev, userRole: '' }));
-    }
-  };
+  // Role selection removed for security - handleRoleChange no longer needed
 
   const validateForm = () => {
     try {
@@ -195,12 +190,12 @@ export default function Auth() {
 
     try {
       if (mode === 'signup') {
+        // SECURITY: Role is no longer passed - all users start as 'member'
         const { error } = await signUp(
           formData.email,
           formData.password,
           formData.fullName,
-          formData.phoneNumber,
-          formData.userRole
+          formData.phoneNumber
         );
         
         if (error) {
@@ -419,23 +414,7 @@ export default function Auth() {
                     <ErrorMessage field="email" />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="userRole">User Role</Label>
-                    <div className="relative">
-                      <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
-                      <Select value={formData.userRole} onValueChange={handleRoleChange}>
-                        <SelectTrigger className="pl-10 bg-muted/50">
-                          <SelectValue placeholder="Select a role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="member">Member</SelectItem>
-                          <SelectItem value="treasurer">Treasurer</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <ErrorMessage field="userRole" />
-                  </div>
+                  {/* SECURITY: Role selection removed - all users start as 'member' */}
 
                   <div className="space-y-2">
                     <Label htmlFor="password">Password</Label>
