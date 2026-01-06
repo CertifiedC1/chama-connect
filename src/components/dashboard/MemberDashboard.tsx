@@ -236,7 +236,7 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-l-4 border-l-primary">
+        <Card className="border-l-4 border-l-primary stats-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-primary">Total Contributed</CardTitle>
             <Wallet className="h-4 w-4 text-muted-foreground" />
@@ -247,7 +247,7 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-blue-500">
+        <Card className="border-l-4 border-l-blue-500 stats-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-600">This Month</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -258,7 +258,7 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-amber-500">
+        <Card className="border-l-4 border-l-amber-500 stats-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Last Contribution</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -273,7 +273,7 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-green-500">
+        <Card className="border-l-4 border-l-green-500 stats-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Member Since</CardTitle>
             <User className="h-4 w-4 text-muted-foreground" />
@@ -291,7 +291,7 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
 
       {/* Additional Stats */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+        <Card className="stats-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Loan Status</CardTitle>
             <Wallet className="h-4 w-4 text-muted-foreground" />
@@ -306,7 +306,7 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="stats-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Fines Owed</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
@@ -319,7 +319,7 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="stats-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Upcoming Deadline</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
@@ -340,7 +340,7 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
         <CardContent className="grid gap-4 grid-cols-2 md:grid-cols-4">
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
+            className="h-20 flex-col gap-2 action-btn"
             onClick={() => setActiveTab('contribute')}
           >
             <CreditCard className="h-5 w-5" />
@@ -348,7 +348,7 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
+            className="h-20 flex-col gap-2 action-btn"
             onClick={() => setActiveTab('history')}
           >
             <History className="h-5 w-5" />
@@ -356,7 +356,7 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
+            className="h-20 flex-col gap-2 action-btn"
             onClick={() => setActiveTab('apply-loan')}
             disabled={stats.contributionCount < 2}
           >
@@ -365,7 +365,7 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
+            className="h-20 flex-col gap-2 action-btn"
             onClick={() => setActiveTab('loan-tracking')}
             disabled={stats.loanStatus === 'None'}
           >
