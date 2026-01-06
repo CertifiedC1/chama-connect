@@ -7,6 +7,9 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-lipana-signature',
 };
 
+// SECURITY: Maximum age for webhooks (5 minutes) to prevent replay attacks
+const MAX_WEBHOOK_AGE_MS = 5 * 60 * 1000;
+
 async function verifySignature(payload: string, signature: string, secret: string): Promise<boolean> {
   const encoder = new TextEncoder();
   const key = await crypto.subtle.importKey(
@@ -56,7 +59,7 @@ serve(async (req) => {
     }
 
     const payload = JSON.parse(rawBody);
-    console.log('Webhook payload:', payload);
+    console.log('Webhook payload received:', JSON.stringify(payload));
 
     const { event, data: eventData } = payload;
 
@@ -65,8 +68,39 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     if (event === 'transaction.success' || event === 'payment.success') {
-      const { transactionId, amount, phone, checkoutRequestID } = eventData;
+      const { transactionId, amount, phone, checkoutRequestID, timestamp } = eventData;
 
+      // SECURITY: Check for replay attacks - reject old webhooks
+      if (timestamp) {
+        const webhookTime = new Date(timestamp).getTime();
+        const now = Date.now();
+        if (now - webhookTime > MAX_WEBHOOK_AGE_MS) {
+          console.error('Webhook too old, possible replay attack:', timestamp);
+          // Return 200 to prevent retries but log the security event
+          return new Response(JSON.stringify({ received: true, warning: 'stale_webhook' }), { 
+            status: 200, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          });
+        }
+      }
+
+      // SECURITY: Check for idempotency - prevent duplicate processing
+      const { data: existingProcessed } = await supabase
+        .from('mpesa_transactions')
+        .select('id, status')
+        .eq('mpesa_reference', transactionId)
+        .neq('status', 'pending')
+        .maybeSingle();
+
+      if (existingProcessed) {
+        console.log('Duplicate webhook - transaction already processed:', transactionId);
+        return new Response(JSON.stringify({ received: true, duplicate: true }), { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        });
+      }
+
+      // Find the pending transaction by checkout request ID
       const { data: txn, error: findError } = await supabase
         .from('mpesa_transactions')
         .select('*')
@@ -81,6 +115,28 @@ serve(async (req) => {
         });
       }
 
+      // SECURITY: Validate amount matches the original request
+      const webhookAmount = Number(amount);
+      if (Math.abs(txn.amount - webhookAmount) > 0.01) {
+        console.error('SECURITY ALERT: Amount mismatch!', 
+          'Expected:', txn.amount, 
+          'Received:', webhookAmount,
+          'TransactionId:', transactionId
+        );
+        // Log security incident but still return 200 to avoid webhook retries
+        await supabase.from('admin_access_logs').insert({
+          action: 'webhook_amount_mismatch',
+          success: false,
+          failure_reason: `Amount mismatch: expected ${txn.amount}, received ${webhookAmount}`,
+          user_id: txn.user_id,
+        });
+        return new Response(JSON.stringify({ received: true, error: 'amount_mismatch' }), { 
+          status: 200, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        });
+      }
+
+      // Update the transaction status
       await supabase
         .from('mpesa_transactions')
         .update({ 

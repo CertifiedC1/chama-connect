@@ -9,7 +9,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   userRole: AppRole | null;
-  signUp: (email: string, password: string, fullName: string, phoneNumber: string, role?: AppRole) => Promise<{ error: Error | null }>;
+  signUp: (email: string, password: string, fullName: string, phoneNumber: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
@@ -66,7 +66,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string, phoneNumber: string, role: AppRole = 'member') => {
+  // SECURITY: Role parameter removed - all users start as 'member'
+  // Admins must be promoted manually by existing admins
+  const signUp = async (email: string, password: string, fullName: string, phoneNumber: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -77,7 +79,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         data: {
           full_name: fullName,
           phone_number: phoneNumber,
-          requested_role: role,
+          // Note: requested_role removed - handle_new_user() always assigns 'member'
         },
       },
     });
