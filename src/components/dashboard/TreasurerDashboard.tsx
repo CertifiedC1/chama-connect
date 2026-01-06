@@ -230,27 +230,27 @@ export function TreasurerDashboard({ isFirstLogin, userName }: TreasurerDashboar
           <CardDescription>Manage contributions and reports</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          <Button variant="outline" className="h-20 flex-col gap-2" onClick={() => setActiveTab('contributions')}>
+          <Button variant="outline" className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg" onClick={() => setActiveTab('contributions')}>
             <Wallet className="h-5 w-5" />
             <span className="text-xs">Manage Contributions</span>
           </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2" onClick={() => setActiveTab('make-contribution')}>
+          <Button variant="outline" className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg" onClick={() => setActiveTab('make-contribution')}>
             <CreditCard className="h-5 w-5" />
             <span className="text-xs">Make Contribution</span>
           </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2" onClick={() => setActiveTab('record-payment')}>
+          <Button variant="outline" className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg" onClick={() => setActiveTab('record-payment')}>
             <Plus className="h-5 w-5" />
             <span className="text-xs">Record Manual Payment</span>
           </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2" onClick={() => setActiveTab('loans')}>
+          <Button variant="outline" className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg" onClick={() => setActiveTab('loans')}>
             <FileText className="h-5 w-5" />
             <span className="text-xs">View Loans</span>
           </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2" onClick={() => setActiveTab('fines')}>
+          <Button variant="outline" className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg" onClick={() => setActiveTab('fines')}>
             <AlertTriangle className="h-5 w-5" />
             <span className="text-xs">Manage Fines</span>
           </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2" onClick={exportReport}>
+          <Button variant="outline" className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg" onClick={exportReport}>
             <Download className="h-5 w-5" />
             <span className="text-xs">Export Report</span>
           </Button>

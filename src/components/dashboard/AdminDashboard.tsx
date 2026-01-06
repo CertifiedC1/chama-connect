@@ -367,7 +367,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
         <CardContent className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2"
+            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
             onClick={() => setActiveTab('members')}
           >
             <Users className="h-5 w-5" />
@@ -375,7 +375,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2"
+            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
             onClick={() => setActiveTab('contributions')}
           >
             <Wallet className="h-5 w-5" />
@@ -383,7 +383,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2"
+            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
             onClick={() => setActiveTab('make-contribution')}
           >
             <Plus className="h-5 w-5" />
@@ -391,7 +391,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2"
+            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
             onClick={() => setActiveTab('settings')}
           >
             <Settings className="h-5 w-5" />
@@ -399,7 +399,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2"
+            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
             onClick={() => setActiveTab('loans')}
           >
             <CreditCard className="h-5 w-5" />
@@ -407,7 +407,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2"
+            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
             onClick={() => setActiveTab('fines')}
           >
             <AlertTriangle className="h-5 w-5" />
@@ -415,7 +415,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2"
+            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
             onClick={exportReport}
           >
             <Download className="h-5 w-5" />

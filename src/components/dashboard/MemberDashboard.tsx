@@ -340,7 +340,7 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
         <CardContent className="grid gap-4 grid-cols-2 md:grid-cols-4">
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2"
+            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
             onClick={() => setActiveTab('contribute')}
           >
             <CreditCard className="h-5 w-5" />
@@ -348,7 +348,7 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2"
+            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
             onClick={() => setActiveTab('history')}
           >
             <History className="h-5 w-5" />
@@ -356,7 +356,7 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2"
+            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
             onClick={() => setActiveTab('apply-loan')}
             disabled={stats.contributionCount < 2}
           >
@@ -365,7 +365,7 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2"
+            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
             onClick={() => setActiveTab('loan-tracking')}
             disabled={stats.loanStatus === 'None'}
           >
