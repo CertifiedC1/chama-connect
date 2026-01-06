@@ -109,10 +109,118 @@
   body {
     @apply bg-background text-foreground antialiased;
   }
+
+  /* Global interactivity for clickable elements */
+  button,
+  a,
+  [role="button"],
+  [role="link"],
+  [role="tab"],
+  [role="menuitem"],
+  [role="option"],
+  input[type="checkbox"],
+  input[type="radio"],
+  select {
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+  }
+
+  button:not(:disabled):hover,
+  a:hover,
+  [role="button"]:not([aria-disabled="true"]):hover,
+  [role="tab"]:hover,
+  [role="menuitem"]:hover {
+    @apply brightness-105;
+  }
+
+  button:not(:disabled):active,
+  a:active,
+  [role="button"]:not([aria-disabled="true"]):active {
+    @apply scale-[0.98] brightness-95;
+  }
+}
+
+@layer components {
+  /* Interactive card hover effect */
+  .interactive-card {
+    @apply transition-all duration-200 ease-in-out cursor-pointer;
+  }
+
+  .interactive-card:hover {
+    @apply shadow-lg -translate-y-0.5 border-primary/30;
+  }
+
+  /* Icon button hover effect */
+  .icon-hover {
+    @apply transition-all duration-200 rounded-full p-1;
+  }
+
+  .icon-hover:hover {
+    @apply bg-accent scale-110;
+  }
+
+  /* Link underline animation */
+  .link-underline {
+    @apply relative inline-block;
+  }
+
+  .link-underline::after {
+    content: '';
+    @apply absolute bottom-0 left-0 w-full h-0.5 bg-primary scale-x-0 origin-right transition-transform duration-300;
+  }
+
+  .link-underline:hover::after {
+    @apply scale-x-100 origin-left;
+  }
+
+  /* Table row hover */
+  .table-row-hover {
+    @apply transition-colors duration-150;
+  }
+
+  .table-row-hover:hover {
+    @apply bg-muted/50;
+  }
+
+  /* Badge hover effect */
+  .badge-hover {
+    @apply transition-all duration-200 cursor-pointer;
+  }
+
+  .badge-hover:hover {
+    @apply ring-2 ring-primary/20 scale-105;
+  }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Hover scale utility */
+  .hover-scale {
+    @apply transition-transform duration-200;
+  }
+
+  .hover-scale:hover {
+    @apply scale-105;
+  }
+
+  /* Hover lift utility */
+  .hover-lift {
+    @apply transition-all duration-200;
+  }
+
+  .hover-lift:hover {
+    @apply -translate-y-1 shadow-md;
+  }
+
+  /* Hover glow utility */
+  .hover-glow {
+    @apply transition-shadow duration-200;
+  }
+
+  .hover-glow:hover {
+    @apply shadow-[0_0_15px_rgba(0,166,81,0.3)];
   }
 }
