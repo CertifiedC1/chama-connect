@@ -277,7 +277,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
 
       {/* Stats Grid */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-l-4 border-l-primary">
+        <Card className="border-l-4 border-l-primary stats-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-primary">Total Members</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -288,7 +288,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-blue-500">
+        <Card className="border-l-4 border-l-blue-500 stats-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-600">Total Contributions</CardTitle>
             <Wallet className="h-4 w-4 text-muted-foreground" />
@@ -299,7 +299,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-amber-500">
+        <Card className="border-l-4 border-l-amber-500 stats-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -310,7 +310,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-green-500">
+        <Card className="border-l-4 border-l-green-500 stats-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">System Status</CardTitle>
             <AlertCircle className="h-4 w-4 text-muted-foreground" />
@@ -324,7 +324,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
 
       {/* Secondary Stats */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+        <Card className="stats-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Loans Issued</CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
@@ -335,7 +335,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="stats-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pending Loan Requests</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
@@ -346,7 +346,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="stats-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Unpaid Fines</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
@@ -367,7 +367,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
         <CardContent className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
+            className="h-20 flex-col gap-2 action-btn"
             onClick={() => setActiveTab('members')}
           >
             <Users className="h-5 w-5" />
@@ -375,7 +375,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
+            className="h-20 flex-col gap-2 action-btn"
             onClick={() => setActiveTab('contributions')}
           >
             <Wallet className="h-5 w-5" />
@@ -383,7 +383,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
+            className="h-20 flex-col gap-2 action-btn"
             onClick={() => setActiveTab('make-contribution')}
           >
             <Plus className="h-5 w-5" />
@@ -391,7 +391,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
+            className="h-20 flex-col gap-2 action-btn"
             onClick={() => setActiveTab('settings')}
           >
             <Settings className="h-5 w-5" />
@@ -399,7 +399,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
+            className="h-20 flex-col gap-2 action-btn"
             onClick={() => setActiveTab('loans')}
           >
             <CreditCard className="h-5 w-5" />
@@ -407,7 +407,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
+            className="h-20 flex-col gap-2 action-btn"
             onClick={() => setActiveTab('fines')}
           >
             <AlertTriangle className="h-5 w-5" />
@@ -415,7 +415,7 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
           </Button>
           <Button 
             variant="outline" 
-            className="h-20 flex-col gap-2 hover-lift hover:border-primary/50 hover:shadow-lg"
+            className="h-20 flex-col gap-2 action-btn"
             onClick={exportReport}
           >
             <Download className="h-5 w-5" />

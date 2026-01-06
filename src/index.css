@@ -150,6 +150,32 @@
     @apply shadow-lg -translate-y-0.5 border-primary/30;
   }
 
+  /* Stats card hover effect */
+  .stats-card {
+    @apply transition-all duration-300 ease-out cursor-default;
+  }
+
+  .stats-card:hover {
+    @apply -translate-y-1 shadow-lg border-primary/20;
+  }
+
+  /* Action button with icon animation */
+  .action-btn {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .action-btn:hover {
+    @apply -translate-y-1.5 shadow-lg border-primary/50;
+  }
+
+  .action-btn:hover svg {
+    @apply scale-110;
+  }
+
+  .action-btn svg {
+    @apply transition-transform duration-300 ease-out;
+  }
+
   /* Icon button hover effect */
   .icon-hover {
     @apply transition-all duration-200 rounded-full p-1;
