@@ -66,6 +66,7 @@ export default function Auth() {
     fullName: '',
     phoneNumber: '',
     email: '',
+    role: 'member' as AppRole,
     password: '',
     confirmPassword: '',
   });
@@ -150,7 +151,9 @@ export default function Auth() {
     validateField(name, value);
   };
 
-  // Role selection removed for security - handleRoleChange no longer needed
+  const handleRoleChange = (value: string) => {
+    setFormData(prev => ({ ...prev, role: value as AppRole }));
+  };
 
   const validateForm = () => {
     try {
@@ -190,12 +193,12 @@ export default function Auth() {
 
     try {
       if (mode === 'signup') {
-        // SECURITY: Role is no longer passed - all users start as 'member'
         const { error } = await signUp(
           formData.email,
           formData.password,
           formData.fullName,
-          formData.phoneNumber
+          formData.phoneNumber,
+          formData.role
         );
         
         if (error) {
@@ -414,7 +417,22 @@ export default function Auth() {
                     <ErrorMessage field="email" />
                   </div>
 
-                  {/* SECURITY: Role selection removed - all users start as 'member' */}
+                  <div className="space-y-2">
+                    <Label htmlFor="role">User Role</Label>
+                    <div className="relative">
+                      <Users className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                      <Select value={formData.role} onValueChange={handleRoleChange}>
+                        <SelectTrigger className="pl-10 bg-muted/50">
+                          <SelectValue placeholder="Select your role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="member">Member</SelectItem>
+                          <SelectItem value="treasurer">Treasurer</SelectItem>
+                          <SelectItem value="admin">Admin</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="password">Password</Label>
