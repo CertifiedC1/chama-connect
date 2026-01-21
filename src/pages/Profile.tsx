@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -102,13 +103,18 @@ export default function Profile() {
   }
 
   return (
-    <div 
-      className="min-h-screen bg-cover bg-center bg-no-repeat"
-      style={{
-        backgroundImage: 'url(https://images.unsplash.com/photo-1557683316-973673baf926?w=1920&h=1080&fit=crop)',
-      }}
-    >
-      <div className="min-h-screen bg-background/90 backdrop-blur-sm">
+    <>
+      <Helmet>
+        <title>Profile Settings - Chama App</title>
+        <meta name="description" content="Update your personal profile information" />
+      </Helmet>
+      <div 
+        className="min-h-screen bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: 'url(https://images.unsplash.com/photo-1557683316-973673baf926?w=1920&h=1080&fit=crop)',
+        }}
+      >
+        <div className="min-h-screen bg-background/90 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-8">
           <Button 
             variant="ghost" 
@@ -187,7 +193,8 @@ export default function Profile() {
             </CardContent>
           </Card>
         </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

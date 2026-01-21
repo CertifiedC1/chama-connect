@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -221,71 +222,80 @@ export default function AdminPortal() {
   // Re-authentication screen
   if (isReauthenticating && !isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="w-full max-w-md">
-          <CardHeader className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-              <Shield className="h-8 w-8 text-primary" />
-            </div>
-            <CardTitle>Admin Portal Access</CardTitle>
-            <CardDescription>
-              Please re-enter your password to continue
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleReauthenticate} className="space-y-4">
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input value={user?.email || ''} disabled className="bg-muted" />
+      <>
+        <Helmet>
+          <title>Admin Portal - Chama App</title>
+        </Helmet>
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
+                <Shield className="h-8 w-8 text-primary" />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
-                  required
-                  autoFocus
-                />
-              </div>
-              {failedAttempts > 0 && (
-                <p className="text-sm text-destructive">
-                  {5 - failedAttempts} attempts remaining before lockout
-                </p>
-              )}
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Verifying...
-                  </>
-                ) : (
-                  <>
-                    <Lock className="mr-2 h-4 w-4" />
-                    Authenticate
-                  </>
+              <CardTitle>Admin Portal Access</CardTitle>
+              <CardDescription>
+                Please re-enter your password to continue
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleReauthenticate} className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Email</Label>
+                  <Input value={user?.email || ''} disabled className="bg-muted" />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Enter your password"
+                    required
+                    autoFocus
+                  />
+                </div>
+                {failedAttempts > 0 && (
+                  <p className="text-sm text-destructive">
+                    {5 - failedAttempts} attempts remaining before lockout
+                  </p>
                 )}
-              </Button>
-              <Button
-                type="button"
-                variant="ghost"
-                className="w-full"
-                onClick={() => navigate('/dashboard')}
-              >
-                Cancel
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      </div>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Verifying...
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="mr-2 h-4 w-4" />
+                      Authenticate
+                    </>
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="w-full"
+                  onClick={() => navigate('/dashboard')}
+                >
+                  Cancel
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
+    <>
+      <Helmet>
+        <title>Admin Portal - Chama App</title>
+      </Helmet>
+      <div className="min-h-screen bg-background">
+        {/* Header */}
       <header className="sticky top-0 z-50 bg-card border-b">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -545,6 +555,7 @@ export default function AdminPortal() {
           </TabsContent>
         </Tabs>
       </main>
-    </div>
+      </div>
+    </>
   );
 }

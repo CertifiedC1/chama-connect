@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
@@ -79,8 +80,13 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Header */}
+    <>
+      <Helmet>
+        <title>Dashboard - Chama App</title>
+        <meta name="description" content="Manage your Chama contributions, loans, and members" />
+      </Helmet>
+      <div className="min-h-screen bg-background flex flex-col">
+        {/* Header */}
       <header className="border-b bg-card sticky top-0 z-50">
         <div className="container flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-3">
@@ -110,6 +116,7 @@ export default function Dashboard() {
 
       {/* Footer */}
       <DashboardFooter />
-    </div>
+      </div>
+    </>
   );
 }

@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Shield, Users, Wallet, Loader2 } from 'lucide-react';
@@ -23,7 +24,12 @@ export default function Index() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/10">
+    <>
+      <Helmet>
+        <title>Chama App - Home</title>
+        <meta name="description" content="Manage your Chama savings group with M-Pesa integration" />
+      </Helmet>
+      <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/10">
       {/* Header */}
       <header className="container mx-auto px-4 py-6">
         <nav className="flex items-center justify-between">
@@ -117,6 +123,7 @@ export default function Index() {
           © 2024 Chama App. All rights reserved.
         </p>
       </footer>
-    </div>
+      </div>
+    </>
   );
 }
