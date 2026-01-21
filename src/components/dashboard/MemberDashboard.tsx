@@ -10,6 +10,7 @@ import { LoanApplication } from '@/components/loans/LoanApplication';
 import { LoanRepaymentTracking } from '@/components/loans/LoanRepaymentTracking';
 import { ImageSlideshow } from '@/components/layout/ImageSlideshow';
 import { RotatingImages } from '@/components/layout/RotatingImages';
+import { DashboardStatsSkeleton, QuickActionsSkeleton } from '@/components/dashboard/DashboardStatsSkeleton';
 
 interface MemberDashboardProps {
   isFirstLogin?: boolean;
@@ -235,145 +236,155 @@ export function MemberDashboard({ isFirstLogin = false, userName }: MemberDashbo
       <ImageSlideshow />
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-l-4 border-l-primary stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-primary">Total Contributed</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">KES {stats.totalContributed.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">All time</p>
-          </CardContent>
-        </Card>
+      {loading ? (
+        <>
+          <DashboardStatsSkeleton count={4} columns={4} />
+          <DashboardStatsSkeleton count={3} columns={3} />
+          <QuickActionsSkeleton count={4} />
+        </>
+      ) : (
+        <>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card className="border-l-4 border-l-primary stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-primary">Total Contributed</CardTitle>
+                <Wallet className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">KES {stats.totalContributed.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">All time</p>
+              </CardContent>
+            </Card>
 
-        <Card className="border-l-4 border-l-blue-500 stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-600">This Month</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">KES {stats.monthlyContribution.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Monthly total</p>
-          </CardContent>
-        </Card>
+            <Card className="border-l-4 border-l-blue-500 stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-blue-600">This Month</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">KES {stats.monthlyContribution.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">Monthly total</p>
+              </CardContent>
+            </Card>
 
-        <Card className="border-l-4 border-l-amber-500 stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Last Contribution</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.lastContributionDate 
-                ? new Date(stats.lastContributionDate).toLocaleDateString()
-                : 'None'}
-            </div>
-            <p className="text-xs text-muted-foreground">Date</p>
-          </CardContent>
-        </Card>
+            <Card className="border-l-4 border-l-amber-500 stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Last Contribution</CardTitle>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {stats.lastContributionDate 
+                    ? new Date(stats.lastContributionDate).toLocaleDateString()
+                    : 'None'}
+                </div>
+                <p className="text-xs text-muted-foreground">Date</p>
+              </CardContent>
+            </Card>
 
-        <Card className="border-l-4 border-l-green-500 stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Member Since</CardTitle>
-            <User className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.memberSince 
-                ? new Date(stats.memberSince).toLocaleDateString()
-                : '--'}
-            </div>
-            <p className="text-xs text-muted-foreground">Join date</p>
-          </CardContent>
-        </Card>
-      </div>
+            <Card className="border-l-4 border-l-green-500 stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Member Since</CardTitle>
+                <User className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {stats.memberSince 
+                    ? new Date(stats.memberSince).toLocaleDateString()
+                    : '--'}
+                </div>
+                <p className="text-xs text-muted-foreground">Join date</p>
+              </CardContent>
+            </Card>
+          </div>
 
-      {/* Additional Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Loan Status</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-lg font-bold ${stats.loanStatus === 'Active' ? 'text-amber-600' : stats.loanStatus === 'Pending' ? 'text-yellow-600' : 'text-green-600'}`}>
-              {stats.loanStatus}
-            </div>
-            {stats.loanBalance > 0 && (
-              <p className="text-xs text-muted-foreground">Balance: KES {stats.loanBalance.toLocaleString()}</p>
-            )}
-          </CardContent>
-        </Card>
+          {/* Additional Stats */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card className="stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Loan Status</CardTitle>
+                <Wallet className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className={`text-lg font-bold ${stats.loanStatus === 'Active' ? 'text-amber-600' : stats.loanStatus === 'Pending' ? 'text-yellow-600' : 'text-green-600'}`}>
+                  {stats.loanStatus}
+                </div>
+                {stats.loanBalance > 0 && (
+                  <p className="text-xs text-muted-foreground">Balance: KES {stats.loanBalance.toLocaleString()}</p>
+                )}
+              </CardContent>
+            </Card>
 
-        <Card className="stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Fines Owed</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className={`text-lg font-bold ${stats.finesOwed > 0 ? 'text-red-600' : 'text-green-600'}`}>
-              KES {stats.finesOwed.toLocaleString()}
-            </div>
-            <p className="text-xs text-muted-foreground">Outstanding fines</p>
-          </CardContent>
-        </Card>
+            <Card className="stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Fines Owed</CardTitle>
+                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className={`text-lg font-bold ${stats.finesOwed > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                  KES {stats.finesOwed.toLocaleString()}
+                </div>
+                <p className="text-xs text-muted-foreground">Outstanding fines</p>
+              </CardContent>
+            </Card>
 
-        <Card className="stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Deadline</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-lg font-bold">End of Month</div>
-            <p className="text-xs text-muted-foreground">Monthly contribution due</p>
-          </CardContent>
-        </Card>
-      </div>
+            <Card className="stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Upcoming Deadline</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-lg font-bold">End of Month</div>
+                <p className="text-xs text-muted-foreground">Monthly contribution due</p>
+              </CardContent>
+            </Card>
+          </div>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Manage your contributions</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 grid-cols-2 md:grid-cols-4">
-          <Button 
-            variant="outline" 
-            className="h-20 flex-col gap-2 action-btn"
-            onClick={() => setActiveTab('contribute')}
-          >
-            <CreditCard className="h-5 w-5" />
-            <span className="text-xs sm:text-sm">Make Contribution</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            className="h-20 flex-col gap-2 action-btn"
-            onClick={() => setActiveTab('history')}
-          >
-            <History className="h-5 w-5" />
-            <span className="text-xs sm:text-sm">View History</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            className="h-20 flex-col gap-2 action-btn"
-            onClick={() => setActiveTab('apply-loan')}
-            disabled={stats.contributionCount < 2}
-          >
-            <TrendingUp className="h-5 w-5" />
-            <span className="text-xs sm:text-sm">{stats.contributionCount < 2 ? `Apply (${stats.contributionCount}/2)` : 'Apply Loan'}</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            className="h-20 flex-col gap-2 action-btn"
-            onClick={() => setActiveTab('loan-tracking')}
-            disabled={stats.loanStatus === 'None'}
-          >
-            <Receipt className="h-5 w-5" />
-            <span className="text-xs sm:text-sm">Loan Tracking</span>
-          </Button>
-        </CardContent>
-      </Card>
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Manage your contributions</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 grid-cols-2 md:grid-cols-4">
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 action-btn"
+                onClick={() => setActiveTab('contribute')}
+              >
+                <CreditCard className="h-5 w-5" />
+                <span className="text-xs sm:text-sm">Make Contribution</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 action-btn"
+                onClick={() => setActiveTab('history')}
+              >
+                <History className="h-5 w-5" />
+                <span className="text-xs sm:text-sm">View History</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 action-btn"
+                onClick={() => setActiveTab('apply-loan')}
+                disabled={stats.contributionCount < 2}
+              >
+                <TrendingUp className="h-5 w-5" />
+                <span className="text-xs sm:text-sm">{stats.contributionCount < 2 ? `Apply (${stats.contributionCount}/2)` : 'Apply Loan'}</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 action-btn"
+                onClick={() => setActiveTab('loan-tracking')}
+                disabled={stats.loanStatus === 'None'}
+              >
+                <Receipt className="h-5 w-5" />
+                <span className="text-xs sm:text-sm">Loan Tracking</span>
+              </Button>
+            </CardContent>
+          </Card>
+        </>
+      )}
 
       {/* Rotating Images */}
       <RotatingImages />

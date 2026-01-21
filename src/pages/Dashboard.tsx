@@ -83,7 +83,19 @@ export default function Dashboard() {
     <>
       <Helmet>
         <title>Dashboard - Chama App</title>
-        <meta name="description" content="Manage your Chama contributions, loans, and members" />
+        <meta name="description" content="Manage your Chama contributions, loans, and members from your personalized dashboard." />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content="Dashboard - Chama App" />
+        <meta property="og:description" content="Manage your Chama contributions, loans, and members from your personalized dashboard." />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&h=630&fit=crop" />
+        
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Dashboard - Chama App" />
+        <meta name="twitter:description" content="Manage your Chama contributions, loans, and members." />
+        <meta name="twitter:image" content="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&h=630&fit=crop" />
       </Helmet>
       <div className="min-h-screen bg-background flex flex-col">
         {/* Header */}

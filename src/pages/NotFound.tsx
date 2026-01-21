@@ -13,6 +13,19 @@ const NotFound = () => {
     <>
       <Helmet>
         <title>Page Not Found - Chama App</title>
+        <meta name="description" content="The page you're looking for doesn't exist." />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content="Page Not Found - Chama App" />
+        <meta property="og:description" content="The page you're looking for doesn't exist." />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&h=630&fit=crop" />
+        
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Page Not Found - Chama App" />
+        <meta name="twitter:description" content="The page you're looking for doesn't exist." />
+        <meta name="twitter:image" content="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&h=630&fit=crop" />
       </Helmet>
     <div className="flex min-h-screen items-center justify-center bg-muted">
       <div className="text-center">

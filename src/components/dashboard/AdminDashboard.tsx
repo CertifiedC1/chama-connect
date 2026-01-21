@@ -12,6 +12,7 @@ import { SystemSettings } from '@/components/settings/SystemSettings';
 import { ImageSlideshow } from '@/components/layout/ImageSlideshow';
 import { RotatingImages } from '@/components/layout/RotatingImages';
 import { useToast } from '@/hooks/use-toast';
+import { DashboardStatsSkeleton, QuickActionsSkeleton } from '@/components/dashboard/DashboardStatsSkeleton';
 
 interface AdminDashboardProps {
   isFirstLogin?: boolean;
@@ -276,153 +277,163 @@ export function AdminDashboard({ isFirstLogin = false, userName }: AdminDashboar
       <ImageSlideshow />
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-l-4 border-l-primary stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-primary">Total Members</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalMembers}</div>
-            <p className="text-xs text-muted-foreground">{stats.activeMembers} active</p>
-          </CardContent>
-        </Card>
+      {loading ? (
+        <>
+          <DashboardStatsSkeleton count={4} columns={4} />
+          <DashboardStatsSkeleton count={3} columns={3} />
+          <QuickActionsSkeleton count={7} />
+        </>
+      ) : (
+        <>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card className="border-l-4 border-l-primary stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-primary">Total Members</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalMembers}</div>
+                <p className="text-xs text-muted-foreground">{stats.activeMembers} active</p>
+              </CardContent>
+            </Card>
 
-        <Card className="border-l-4 border-l-blue-500 stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-600">Total Contributions</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">KES {stats.totalContributions.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">All time</p>
-          </CardContent>
-        </Card>
+            <Card className="border-l-4 border-l-blue-500 stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-blue-600">Total Contributions</CardTitle>
+                <Wallet className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">KES {stats.totalContributions.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">All time</p>
+              </CardContent>
+            </Card>
 
-        <Card className="border-l-4 border-l-amber-500 stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingContributions}</div>
-            <p className="text-xs text-muted-foreground">Contributions to approve</p>
-          </CardContent>
-        </Card>
+            <Card className="border-l-4 border-l-amber-500 stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pending Approvals</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.pendingContributions}</div>
+                <p className="text-xs text-muted-foreground">Contributions to approve</p>
+              </CardContent>
+            </Card>
 
-        <Card className="border-l-4 border-l-green-500 stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">System Status</CardTitle>
-            <AlertCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">Active</div>
-            <p className="text-xs text-muted-foreground">All systems operational</p>
-          </CardContent>
-        </Card>
-      </div>
+            <Card className="border-l-4 border-l-green-500 stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">System Status</CardTitle>
+                <AlertCircle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">Active</div>
+                <p className="text-xs text-muted-foreground">All systems operational</p>
+              </CardContent>
+            </Card>
+          </div>
 
-      {/* Secondary Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Loans Issued</CardTitle>
-            <CreditCard className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">KES {stats.totalLoansIssued.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Approved loans</p>
-          </CardContent>
-        </Card>
+          {/* Secondary Stats */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card className="stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Loans Issued</CardTitle>
+                <CreditCard className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">KES {stats.totalLoansIssued.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">Approved loans</p>
+              </CardContent>
+            </Card>
 
-        <Card className="stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Loan Requests</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingLoanRequests}</div>
-            <p className="text-xs text-muted-foreground">Awaiting approval</p>
-          </CardContent>
-        </Card>
+            <Card className="stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pending Loan Requests</CardTitle>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.pendingLoanRequests}</div>
+                <p className="text-xs text-muted-foreground">Awaiting approval</p>
+              </CardContent>
+            </Card>
 
-        <Card className="stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Unpaid Fines</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">KES {stats.totalFines.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Outstanding fines</p>
-          </CardContent>
-        </Card>
-      </div>
+            <Card className="stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Unpaid Fines</CardTitle>
+                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-600">KES {stats.totalFines.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">Outstanding fines</p>
+              </CardContent>
+            </Card>
+          </div>
 
-      {/* Quick Actions - Updated layout matching the image */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-          <CardDescription>Admin management tools</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          <Button 
-            variant="outline" 
-            className="h-20 flex-col gap-2 action-btn"
-            onClick={() => setActiveTab('members')}
-          >
-            <Users className="h-5 w-5" />
-            <span className="text-xs">Manage Members</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            className="h-20 flex-col gap-2 action-btn"
-            onClick={() => setActiveTab('contributions')}
-          >
-            <Wallet className="h-5 w-5" />
-            <span className="text-xs">View Contributions</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            className="h-20 flex-col gap-2 action-btn"
-            onClick={() => setActiveTab('make-contribution')}
-          >
-            <Plus className="h-5 w-5" />
-            <span className="text-xs">Make Contribution</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            className="h-20 flex-col gap-2 action-btn"
-            onClick={() => setActiveTab('settings')}
-          >
-            <Settings className="h-5 w-5" />
-            <span className="text-xs">System Settings</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            className="h-20 flex-col gap-2 action-btn"
-            onClick={() => setActiveTab('loans')}
-          >
-            <CreditCard className="h-5 w-5" />
-            <span className="text-xs">Manage Loans</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            className="h-20 flex-col gap-2 action-btn"
-            onClick={() => setActiveTab('fines')}
-          >
-            <AlertTriangle className="h-5 w-5" />
-            <span className="text-xs">Manage Fines</span>
-          </Button>
-          <Button 
-            variant="outline" 
-            className="h-20 flex-col gap-2 action-btn"
-            onClick={exportReport}
-          >
-            <Download className="h-5 w-5" />
-            <span className="text-xs">Export Report</span>
-          </Button>
-        </CardContent>
-      </Card>
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+              <CardDescription>Admin management tools</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 action-btn"
+                onClick={() => setActiveTab('members')}
+              >
+                <Users className="h-5 w-5" />
+                <span className="text-xs">Manage Members</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 action-btn"
+                onClick={() => setActiveTab('contributions')}
+              >
+                <Wallet className="h-5 w-5" />
+                <span className="text-xs">View Contributions</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 action-btn"
+                onClick={() => setActiveTab('make-contribution')}
+              >
+                <Plus className="h-5 w-5" />
+                <span className="text-xs">Make Contribution</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 action-btn"
+                onClick={() => setActiveTab('settings')}
+              >
+                <Settings className="h-5 w-5" />
+                <span className="text-xs">System Settings</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 action-btn"
+                onClick={() => setActiveTab('loans')}
+              >
+                <CreditCard className="h-5 w-5" />
+                <span className="text-xs">Manage Loans</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 action-btn"
+                onClick={() => setActiveTab('fines')}
+              >
+                <AlertTriangle className="h-5 w-5" />
+                <span className="text-xs">Manage Fines</span>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="h-20 flex-col gap-2 action-btn"
+                onClick={exportReport}
+              >
+                <Download className="h-5 w-5" />
+                <span className="text-xs">Export Report</span>
+              </Button>
+            </CardContent>
+          </Card>
+        </>
+      )}
 
       {/* Rotating Images */}
       <RotatingImages />
