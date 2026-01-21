@@ -27,7 +27,20 @@ export default function Index() {
     <>
       <Helmet>
         <title>Chama App - Home</title>
-        <meta name="description" content="Manage your Chama savings group with M-Pesa integration" />
+        <meta name="description" content="Manage your Chama savings group with M-Pesa integration. Track contributions, handle loans, and integrate seamlessly with M-Pesa." />
+        
+        {/* Open Graph */}
+        <meta property="og:title" content="Chama App - Manage Your Savings Group" />
+        <meta property="og:description" content="The all-in-one platform for managing your Chama savings group. Track contributions, handle loans, and integrate seamlessly with M-Pesa." />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&h=630&fit=crop" />
+        <meta property="og:url" content="/" />
+        
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Chama App - Manage Your Savings Group" />
+        <meta name="twitter:description" content="The all-in-one platform for managing your Chama savings group with M-Pesa integration." />
+        <meta name="twitter:image" content="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&h=630&fit=crop" />
       </Helmet>
       <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/10">
       {/* Header */}

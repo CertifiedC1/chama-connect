@@ -225,6 +225,19 @@ export default function AdminPortal() {
       <>
         <Helmet>
           <title>Admin Portal - Chama App</title>
+          <meta name="description" content="Secure admin portal for system management and monitoring." />
+          
+          {/* Open Graph */}
+          <meta property="og:title" content="Admin Portal - Chama App" />
+          <meta property="og:description" content="Secure admin portal for system management." />
+          <meta property="og:type" content="website" />
+          <meta property="og:image" content="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&h=630&fit=crop" />
+          
+          {/* Twitter */}
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content="Admin Portal - Chama App" />
+          <meta name="twitter:description" content="Secure admin portal for system management." />
+          <meta name="twitter:image" content="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&h=630&fit=crop" />
         </Helmet>
         <div className="min-h-screen bg-background flex items-center justify-center p-4">
           <Card className="w-full max-w-md">
@@ -290,10 +303,23 @@ export default function AdminPortal() {
   }
 
   return (
-    <>
-      <Helmet>
-        <title>Admin Portal - Chama App</title>
-      </Helmet>
+      <>
+        <Helmet>
+          <title>Admin Portal - Chama App</title>
+          <meta name="description" content="Secure admin portal for system management and monitoring." />
+          
+          {/* Open Graph */}
+          <meta property="og:title" content="Admin Portal - Chama App" />
+          <meta property="og:description" content="Secure admin portal for system management." />
+          <meta property="og:type" content="website" />
+          <meta property="og:image" content="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&h=630&fit=crop" />
+          
+          {/* Twitter */}
+          <meta name="twitter:card" content="summary_large_image" />
+          <meta name="twitter:title" content="Admin Portal - Chama App" />
+          <meta name="twitter:description" content="Secure admin portal for system management." />
+          <meta name="twitter:image" content="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&h=630&fit=crop" />
+        </Helmet>
       <div className="min-h-screen bg-background">
         {/* Header */}
       <header className="sticky top-0 z-50 bg-card border-b">

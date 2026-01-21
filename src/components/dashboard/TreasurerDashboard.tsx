@@ -11,6 +11,7 @@ import { FinesManagement } from '@/components/fines/FinesManagement';
 import { ImageSlideshow } from '@/components/layout/ImageSlideshow';
 import { RotatingImages } from '@/components/layout/RotatingImages';
 import { useToast } from '@/hooks/use-toast';
+import { DashboardStatsSkeleton, QuickActionsSkeleton } from '@/components/dashboard/DashboardStatsSkeleton';
 
 interface TreasurerDashboardProps {
   isFirstLogin?: boolean;
@@ -185,77 +186,86 @@ export function TreasurerDashboard({ isFirstLogin, userName }: TreasurerDashboar
 
       <ImageSlideshow />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Members</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.totalMembers}</div>
-          </CardContent>
-        </Card>
-        <Card className="stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Collections</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">KES {stats.totalContributions.toLocaleString()}</div>
-          </CardContent>
-        </Card>
-        <Card className="stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Month</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">KES {stats.monthlyContributions.toLocaleString()}</div>
-          </CardContent>
-        </Card>
-        <Card className="stats-card">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Loans</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{stats.pendingLoans}</div>
-          </CardContent>
-        </Card>
-      </div>
+      {loading ? (
+        <>
+          <DashboardStatsSkeleton count={4} columns={4} />
+          <QuickActionsSkeleton count={6} />
+        </>
+      ) : (
+        <>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card className="stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Members</CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalMembers}</div>
+              </CardContent>
+            </Card>
+            <Card className="stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Collections</CardTitle>
+                <Wallet className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">KES {stats.totalContributions.toLocaleString()}</div>
+              </CardContent>
+            </Card>
+            <Card className="stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">This Month</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">KES {stats.monthlyContributions.toLocaleString()}</div>
+              </CardContent>
+            </Card>
+            <Card className="stats-card">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Pending Loans</CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.pendingLoans}</div>
+              </CardContent>
+            </Card>
+          </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Finance Actions</CardTitle>
-          <CardDescription>Manage contributions and reports</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          <Button variant="outline" className="h-20 flex-col gap-2 action-btn" onClick={() => setActiveTab('contributions')}>
-            <Wallet className="h-5 w-5" />
-            <span className="text-xs">Manage Contributions</span>
-          </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2 action-btn" onClick={() => setActiveTab('make-contribution')}>
-            <CreditCard className="h-5 w-5" />
-            <span className="text-xs">Make Contribution</span>
-          </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2 action-btn" onClick={() => setActiveTab('record-payment')}>
-            <Plus className="h-5 w-5" />
-            <span className="text-xs">Record Manual Payment</span>
-          </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2 action-btn" onClick={() => setActiveTab('loans')}>
-            <FileText className="h-5 w-5" />
-            <span className="text-xs">View Loans</span>
-          </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2 action-btn" onClick={() => setActiveTab('fines')}>
-            <AlertTriangle className="h-5 w-5" />
-            <span className="text-xs">Manage Fines</span>
-          </Button>
-          <Button variant="outline" className="h-20 flex-col gap-2 action-btn" onClick={exportReport}>
-            <Download className="h-5 w-5" />
-            <span className="text-xs">Export Report</span>
-          </Button>
-        </CardContent>
-      </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Finance Actions</CardTitle>
+              <CardDescription>Manage contributions and reports</CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+              <Button variant="outline" className="h-20 flex-col gap-2 action-btn" onClick={() => setActiveTab('contributions')}>
+                <Wallet className="h-5 w-5" />
+                <span className="text-xs">Manage Contributions</span>
+              </Button>
+              <Button variant="outline" className="h-20 flex-col gap-2 action-btn" onClick={() => setActiveTab('make-contribution')}>
+                <CreditCard className="h-5 w-5" />
+                <span className="text-xs">Make Contribution</span>
+              </Button>
+              <Button variant="outline" className="h-20 flex-col gap-2 action-btn" onClick={() => setActiveTab('record-payment')}>
+                <Plus className="h-5 w-5" />
+                <span className="text-xs">Record Manual Payment</span>
+              </Button>
+              <Button variant="outline" className="h-20 flex-col gap-2 action-btn" onClick={() => setActiveTab('loans')}>
+                <FileText className="h-5 w-5" />
+                <span className="text-xs">View Loans</span>
+              </Button>
+              <Button variant="outline" className="h-20 flex-col gap-2 action-btn" onClick={() => setActiveTab('fines')}>
+                <AlertTriangle className="h-5 w-5" />
+                <span className="text-xs">Manage Fines</span>
+              </Button>
+              <Button variant="outline" className="h-20 flex-col gap-2 action-btn" onClick={exportReport}>
+                <Download className="h-5 w-5" />
+                <span className="text-xs">Export Report</span>
+              </Button>
+            </CardContent>
+          </Card>
+        </>
+      )}
 
       <RotatingImages />
     </div>
