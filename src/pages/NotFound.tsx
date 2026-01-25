@@ -19,13 +19,13 @@ const NotFound = () => {
         <meta property="og:title" content="Page Not Found - Chama App" />
         <meta property="og:description" content="The page you're looking for doesn't exist." />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&h=630&fit=crop" />
+        <meta property="og:image" content="https://id-preview--99668365-71ff-4751-a51d-83f3b05f728c.lovable.app/og-image.png" />
         
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Page Not Found - Chama App" />
         <meta name="twitter:description" content="The page you're looking for doesn't exist." />
-        <meta name="twitter:image" content="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&h=630&fit=crop" />
+        <meta name="twitter:image" content="https://id-preview--99668365-71ff-4751-a51d-83f3b05f728c.lovable.app/og-image.png" />
       </Helmet>
     <div className="flex min-h-screen items-center justify-center bg-muted">
       <div className="text-center">
