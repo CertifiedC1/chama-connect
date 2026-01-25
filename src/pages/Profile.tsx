@@ -112,13 +112,13 @@ export default function Profile() {
         <meta property="og:title" content="Profile Settings - Chama App" />
         <meta property="og:description" content="Update your personal profile information and account settings." />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&h=630&fit=crop" />
+        <meta property="og:image" content="https://id-preview--99668365-71ff-4751-a51d-83f3b05f728c.lovable.app/og-image.png" />
         
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Profile Settings - Chama App" />
         <meta name="twitter:description" content="Update your personal profile information." />
-        <meta name="twitter:image" content="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&h=630&fit=crop" />
+        <meta name="twitter:image" content="https://id-preview--99668365-71ff-4751-a51d-83f3b05f728c.lovable.app/og-image.png" />
       </Helmet>
       <div 
         className="min-h-screen bg-cover bg-center bg-no-repeat"

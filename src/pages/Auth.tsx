@@ -278,13 +278,13 @@ export default function Auth() {
         <meta property="og:title" content={`${mode === 'signup' ? 'Sign Up' : mode === 'forgot' ? 'Reset Password' : 'Sign In'} - Chama App`} />
         <meta property="og:description" content="Access your Chama savings group account. Sign in or create a new account." />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&h=630&fit=crop" />
+        <meta property="og:image" content="https://id-preview--99668365-71ff-4751-a51d-83f3b05f728c.lovable.app/og-image.png" />
         
         {/* Twitter */}
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${mode === 'signup' ? 'Sign Up' : mode === 'forgot' ? 'Reset Password' : 'Sign In'} - Chama App`} />
         <meta name="twitter:description" content="Access your Chama savings group account." />
-        <meta name="twitter:image" content="https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=1200&h=630&fit=crop" />
+        <meta name="twitter:image" content="https://id-preview--99668365-71ff-4751-a51d-83f3b05f728c.lovable.app/og-image.png" />
       </Helmet>
       <div 
         className="min-h-screen flex items-center justify-center p-4"
