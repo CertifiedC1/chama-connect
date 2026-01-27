@@ -29,6 +29,16 @@ const validateEmail = (email: string) => {
   return /^[^\s@]+@gmail\.com$/i.test(email);
 };
 
+// SECURITY: Strong password requirements
+const validatePassword = (password: string) => {
+  if (password.length < 8) return { valid: false, message: 'Password must be at least 8 characters' };
+  if (!/[A-Z]/.test(password)) return { valid: false, message: 'Password must contain an uppercase letter' };
+  if (!/[a-z]/.test(password)) return { valid: false, message: 'Password must contain a lowercase letter' };
+  if (!/[0-9]/.test(password)) return { valid: false, message: 'Password must contain a number' };
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return { valid: false, message: 'Password must contain a special character' };
+  return { valid: true, message: '' };
+};
+
 // SECURITY: Role selection removed from signup - all users start as 'member'
 // Admins must be promoted manually by existing admins
 const signUpSchema = z.object({
@@ -41,7 +51,12 @@ const signUpSchema = z.object({
   email: z.string().refine(validateEmail, {
     message: 'Invalid email!'
   }),
-  password: z.string().min(6, 'Password must be at least 6 characters!'),
+  password: z.string()
+    .min(8, 'Password must be at least 8 characters')
+    .regex(/[A-Z]/, 'Password must contain an uppercase letter')
+    .regex(/[a-z]/, 'Password must contain a lowercase letter')
+    .regex(/[0-9]/, 'Password must contain a number')
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain a special character'),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match!",
@@ -105,8 +120,11 @@ export default function Auth() {
         }
         break;
       case 'password':
-        if (value.length > 0 && value.length < 6) {
-          error = 'Password must be at least 6 characters!';
+        if (value.length > 0) {
+          const passwordResult = validatePassword(value);
+          if (!passwordResult.valid) {
+            error = passwordResult.message;
+          }
         }
         break;
       case 'confirmPassword':
@@ -460,7 +478,7 @@ export default function Auth() {
                         id="password"
                         name="password"
                         type={showPassword ? 'text' : 'password'}
-                        placeholder="Enter your password (min 6 chars)"
+                        placeholder="Min 8 chars, uppercase, lowercase, number, special"
                         value={formData.password}
                         onChange={handleChange}
                         onBlur={handleBlur}
