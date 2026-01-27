@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { useAuth } from '@/hooks/useAuth';
+import { useSessionSecurity } from '@/hooks/useSessionSecurity';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { AdminDashboard } from '@/components/dashboard/AdminDashboard';
@@ -16,6 +17,9 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<{ full_name: string } | null>(null);
   const [isFirstLogin, setIsFirstLogin] = useState(false);
+  
+  // Session security - auto logout on inactivity
+  useSessionSecurity();
 
   useEffect(() => {
     if (!loading && !user) {
